@@ -43,8 +43,8 @@ To use this extension, install it into your impulse-enabled environment. Once in
 
 ## Status
 
-- **VCD:** Supported (reader implemented <stable>)
-- **FST:** Supported (reader implemented <experimental>)
+- **VCD:** Supported (reader implemented "stable")
+- **FST:** Supported (reader implemented "experimental")
 - **FSDB:** In preparation
 - **WLF:** In preparation
 
