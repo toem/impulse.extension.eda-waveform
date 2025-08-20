@@ -2,7 +2,7 @@
 
 # EDA Waveform Extension for impulse
 
-This package provides an extension for the [impulse](https://www.toem.io/index.php/projects/impulse) framework, focusing on the import and (optionally) export of Electronic Design Automation (EDA) waveform data. impulse is a powerful, extensible platform for signal analysis, visualization, and processing, widely used in engineering and scientific domains to handle a broad range of data formats.
+This package provides an extension for the [impulse](https://www.toem.io/impulse) framework, focusing on the import and (optionally) export of Electronic Design Automation (EDA) waveform data. impulse is a powerful, extensible platform for signal analysis, visualization, and processing, widely used in engineering and scientific domains to handle a broad range of data formats.
 
 ## About impulse
 
@@ -39,7 +39,7 @@ Additional formats may be added in the future as the needs of the EDA and impuls
 
 ## Getting Started
 
-To use this extension, install it into your impulse-enabled environment. Once installed, you can import supported EDA waveform files directly into impulse for analysis and visualization. For details on implementing or extending readers and writers, refer to the [impulse developer documentation](https://toem.de/index.php/projects/impulse).
+To use this extension, install it into your impulse-enabled environment. Once installed, you can import supported EDA waveform files directly into impulse for analysis and visualization. For details on implementing or extending readers and writers, refer to the [impulse documentation](https://toem.io/category/resources/).
 
 ## Status
 
