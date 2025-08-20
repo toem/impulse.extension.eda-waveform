@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<record name="VCD Record">
+    <record.scope name="scp0001">
+        <record.scope name="scp0002">
+            <record.signal name="trireg0001" domainBase="ns" count="5" scale="1" description="trireg" sampleType="5" end="8041">
+                <samples len="1">FQgGAA8AkeH/SCDkB0AAeJEh/0QHkCGqoA8=</samples>
+            </record.signal>
+            <record.signal name="trireg0002" domainBase="ns" count="5" scale="1" description="trireg" sampleType="5" end="8041">
+                <samples len="1">FQgGAA8AkeH/QCDkB0gAeJEh/0QHQCCgDw==</samples>
+            </record.signal>
+            <record.signal name="trireg0003" domainBase="ns" count="10" scale="1" description="trireg" sampleType="5" end="8041">
+                <samples len="1">FQgGAA8AkeH/QCDkB0gAFEAAKEgAKEAAFEAAFJEh/zAHSCCgD0AAKA==</samples>
+            </record.signal>
+        </record.scope>
+        <record.scope name="scp0003">
+            <record.signal name="reg0001" domainBase="ns" count="6" scale="32" description="reg" sampleType="5" end="8041">
+                <samples len="1">FQgGAA8AkeH/kSQBsBwF5AeQAapkkAGqFJEh/0QHUCEBoA8=</samples>
+            </record.signal>
+            <record.signal name="integer0001" domainBase="ns" count="5" scale="32" description="integer" sampleType="5" end="8041">
+                <samples len="1">FQgGAA8AkeH/kSMFRJPkB5EDBUSTeJEh/0QHkSH/oA8=</samples>
+            </record.signal>
+        </record.scope>
+    </record.scope>
+</record>

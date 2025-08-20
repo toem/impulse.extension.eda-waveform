@@ -1,0 +1,67 @@
+
+CellReader = Class.forName("de.toem.toolkits.pattern.element.serializer.AbstractCellReader");
+reader = "FST Reader";
+samples = pwd+"/samples/";
+properties = Elements.serializers.get(reader).getPropertyModel(null,null);
+result = true;
+
+result = result && CellReader.testCompare(reader, samples+"/t0001.fst",null,null,console);
+//result = result && CellReader.testCompare(reader, samples+"/t0002.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0003.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0004.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0005.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0006.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0007.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0008.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0009.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0010.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0011.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0012.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0013.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0014.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0015.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0016.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0017.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0018.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0019.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0020.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0021.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0022.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0023.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0024.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0025.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0026.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0027.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0028.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0029.fst",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0030.fst",null,null,console);
+
+// range
+properties.setVal("start","1us");
+properties.setVal("end","3us");
+result = result && CellReader.testCompare(reader, samples+"/t0002.fst", properties.total(), samples+"/t0002_range.recMl",console);
+properties.reset("start");
+properties.reset("end");
+
+// select
+properties.setVal("include","scp0003");
+properties.setVal("exclude","scp0004");
+properties.setVal("empty","false");
+result = result && CellReader.testCompare(reader, samples+"/t0002.fst", properties.total(), samples+"/t0002_select.recMl",console);
+properties.reset("include");
+properties.reset("exclude");
+properties.reset("empty");
+
+// vector
+properties.setVal("vector","false");
+result = result && CellReader.testCompare(reader, samples+"/t0019.fst", properties.total(), samples+"/t0019_novector.recMl",console);
+properties.reset("vector");
+
+// transform
+properties.setVal("delay","10ms");
+properties.setVal("dilate","2");
+result = result && CellReader.testCompare(reader, samples+"/t0019.fst", properties.total(), samples+"/t0019_transform.recMl",console);
+properties.reset("delay");
+properties.reset("dilate");
+
+result

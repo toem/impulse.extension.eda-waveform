@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<record name="VCD Record">
+    <record.scope name="scp0001">
+        <record.signal name="wire0001" domainBase="ps" count="37" scale="1" description="wire" sampleType="5" end="11201">
+            <samples len="1">FQgGAA8AQOBA4EggQAFAIEABSCBAAUAgQAFIIEABQCBAAUggQAFAIEABSCBAAUAgQAFIIEABQCBAAUggQAFAIEABSCBAAUAgQAFIIEABQCBAAUggQAFAIEABSCBAAUAgQAFIIEABQCBAAUggQAFAIEABSCBAAUAgQAFIIEABQCBAAUggQAFAIEABSCBAAUAgQAFIIEAB</samples>
+        </record.signal>
+        <record.signal name="wire0002" domainBase="ps" count="5" scale="1" description="wire" sampleType="5" end="11201">
+            <samples len="1">FQgGAA8AQOBA4EgAKEAgMCBIIIAC</samples>
+        </record.signal>
+        <record.signal name="wire0003" domainBase="ps" count="2" scale="1" description="wire" sampleType="5" end="11201">
+            <samples len="1">FQgGAA8AkOGqSCBYFg==</samples>
+        </record.signal>
+        <record.signal name="wire0004" domainBase="ps" count="8" scale="1" description="wire" sampleType="5" end="11201">
+            <samples len="1">FQgGAA8AkeH/SCAYAUAgaAZIIIACQCCAAkggQAFAIEAGSCCAAg==</samples>
+        </record.signal>
+        <record.signal name="reg0001" domainBase="ps" count="11" scale="8" description="reg" sampleType="5" end="11201">
+            <samples len="1">FQgGAA8AUOEBUOEBkCGqQBWQIalAAZAhpUABkCGVQAGQIqpVQAGQIqlVQAGQIqVVQAGQIpVVQAFQIQFAAQ==</samples>
+        </record.signal>
+        <record.signal name="reg0002" domainBase="ps" count="39" scale="16" description="reg" sampleType="5" end="11201">
+            <samples len="1">FQgGAA8AQOBA4FABAShAIBgBUCEBQAFAIEABUCEDQAFQIQJAAVAhAUABQCBAAVAhB0ABUCEGQAFQIQVAAVAhBEABUCEDQAFQIQJAAVAhAUABQCBAAVAhD0ABUCEOQAFQIQ1AAVAhDEABUCELQAFQIQpAAVAhCUABUCEIQAFQIQdAAVAhBkABUCEFQAFQIQRAAVAhARgBQAAoUCEBQAFAIEABUCEDQAFQIQJAAVAhAUABQCBAAVAhB0AB</samples>
+        </record.signal>
+        <record.signal name="reg0003" domainBase="ps" count="14" scale="16" description="reg" sampleType="5" end="11201">
+            <samples len="1">FQgGAA8AUOEBUOEBQCBAFVAhAUABQCBAAVAhA0ABUCECQAFQIQFAAUAgQAFQIQdAAVAhBkABUCEFQAFQIQRAAVAhARgB</samples>
+        </record.signal>
+        <record.signal name="reg0004" domainBase="ps" count="19" scale="16" description="reg" sampleType="5" end="11201">
+            <samples len="1">FQgGAA8AUOEBUOEBUCIDfEABUCIG+UABUCIN80ABUCIb50ABUCI3z0ABUCJvn0ABUCIfP0ABUCI+f0ABUCJ8/0ABUCIB/0ABUCID/0ABUCIH/0ABUCIP/0ABUCIf/0ABUCI//0ABUCJ//0ABUCEBQAE=</samples>
+        </record.signal>
+        <record.signal name="reg0005" domainBase="ps" count="3" scale="1" description="reg" sampleType="5" end="11201">
+            <samples len="1">FQgGAA8ASOBI4EAgGAE=</samples>
+        </record.signal>
+        <record.signal name="reg0006" domainBase="ps" count="8" scale="1" description="reg" sampleType="5" end="11201">
+            <samples len="1">FQgGAA8ASOBI4EAggAdIIIACQCCAAkggQAFAIEAGSCCAAg==</samples>
+        </record.signal>
+    </record.scope>
+</record>

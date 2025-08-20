@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<record name="VCD Record">
+    <record.scope name="scp0001">
+        <record.signal name="real0001" domainBase="ns" count="2" description="real" sampleType="3" end="9">
+            <samples len="1">FQgGAA8AUOjSITN/fNkSQFAI0iEzf3zZIkAE</samples>
+        </record.signal>
+        <record.signal name="real0002" domainBase="ns" count="2" description="real" sampleType="3" end="9">
+            <samples len="1">FQgGAA8AUOgYLURU+yEZQFAIXjhVKXpqH0AE</samples>
+        </record.signal>
+        <record.proxy name="real0003" description="real" signal="scp0001/real0002"/>
+        <record.proxy name="real0004" description="real" signal="scp0001/real0002"/>
+    </record.scope>
+</record>

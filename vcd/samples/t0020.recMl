@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<record name="VCD Record">
+    <record.signal name="reg0001" domainBase="us10" count="3" scale="1" description="reg" sampleType="5" end="11301">
+        <samples len="1">FQgGAA8ASOBAIFADSCDUKA==</samples>
+    </record.signal>
+    <record.signal name="event0001" domainBase="us10" count="1" description="event" sampleType="1" end="11301">
+        <samples len="1">FQgGAA8AQCBQAw==</samples>
+    </record.signal>
+    <record.signal name="reg0002" domainBase="us10" count="3" scale="32" description="reg" sampleType="5" end="11301">
+        <samples len="1">FQgGAA8AUOIA/1Ah/lADSCDUKA==</samples>
+    </record.signal>
+    <record.signal name="reg0003" domainBase="us10" count="3" scale="1" description="reg" sampleType="5" end="11301">
+        <samples len="1">FQgGAA8ASOBAIEgHSCAUIw==</samples>
+    </record.signal>
+    <record.signal name="event0002" domainBase="us10" count="1" description="event" sampleType="1" end="11301">
+        <samples len="1">FQgGAA8AQCBIBw==</samples>
+    </record.signal>
+    <record.signal name="reg0004" domainBase="us10" count="3" scale="32" description="reg" sampleType="5" end="11301">
+        <samples len="1">FQgGAA8AUOIA/1Ah/kgHSCAUIw==</samples>
+    </record.signal>
+    <record.signal name="rst0001" domainBase="us10" count="5" scale="1" description="reg" sampleType="5" end="11301">
+        <samples len="1">FQgGAA8ASOBAIMwKSCC0AUAgTBRIIGwB</samples>
+    </record.signal>
+    <record.signal name="rst0002" domainBase="us10" count="2" description="event" sampleType="1" end="11301">
+        <samples len="1">FQgGAA8AQCDMCkAgABY=</samples>
+    </record.signal>
+    <record.signal name="reg0005" domainBase="us10" count="5" scale="32" description="reg" sampleType="5" end="11301">
+        <samples len="1">FQgGAA8AUOIA/1Ah/swKSCC0AVAh/kwUSCBsAQ==</samples>
+    </record.signal>
+    <record.signal name="reg0006" domainBase="us10" count="5" scale="1" description="reg" sampleType="5" end="11301">
+        <samples len="1">FQgGAA8ASOBAIHQaSCCEAkAgrAhIIOwB</samples>
+    </record.signal>
+    <record.signal name="event0003" domainBase="us10" count="2" description="event" sampleType="1" end="11301">
+        <samples len="1">FQgGAA8AQCB0GkAgMAs=</samples>
+    </record.signal>
+    <record.signal name="reg0007" domainBase="us10" count="5" scale="32" description="reg" sampleType="5" end="11301">
+        <samples len="1">FQgGAA8AUOIA/1Akj///73QaSCCEAlAkj///76wISCDsAQ==</samples>
+    </record.signal>
+</record>

@@ -1,0 +1,20 @@
+$date
+	Mon Jul 21 08:55:25 2025
+
+$end
+$version
+	Test Converter
+$end
+$timescale
+	1s
+$end
+$scope module scp0001 $end
+$var reg 33 ! reg0001[32:0] $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx !
+b000000000000000001111110011110000 !
+$end
+#40

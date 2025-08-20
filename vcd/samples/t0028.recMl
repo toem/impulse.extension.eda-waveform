@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<record name="VCD Record">
+    <record.scope name="scp0001">
+        <record.scope name="scp0002">
+            <record.proxy name="reg0001" description="reg" signal="scp0001/reg0001"/>
+            <record.proxy name="rst0002" description="reg" signal="scp0001/rst0001"/>
+            <record.proxy name="reg0003" description="reg" signal="scp0001/reg0003"/>
+            <record.proxy name="reg0008" description="reg" signal="scp0001/reg0002"/>
+            <record.proxy name="reg0004" description="reg" signal="scp0001/reg0004"/>
+            <record.proxy name="reg0005" description="reg" signal="scp0001/reg0005"/>
+            <record.proxy name="clk0002" description="reg" signal="scp0001/clk0001"/>
+            <record.proxy name="reg0006" description="reg" signal="scp0001/reg0006"/>
+            <record.proxy name="reg0007" description="reg" signal="scp0001/reg0007"/>
+        </record.scope>
+        <record.signal name="reg0001" domainBase="ns" count="1" scale="1" description="reg" sampleType="5" end="8001">
+            <samples len="1">FQgGAA8ASOA=</samples>
+        </record.signal>
+        <record.signal name="rst0001" domainBase="ns" count="2" scale="1" description="reg" sampleType="5" end="8001">
+            <samples len="1">FQgGAA8ASOBAABQ=</samples>
+        </record.signal>
+        <record.signal name="reg0002" domainBase="ns" count="3" scale="1" description="reg" sampleType="5" end="8001">
+            <samples len="1">FQgGAA8ASOBAABRIADw=</samples>
+        </record.signal>
+        <record.signal name="reg0003" domainBase="ns" count="1" scale="1" description="reg" sampleType="5" end="8001">
+            <samples len="1">FQgGAA8ASOA=</samples>
+        </record.signal>
+        <record.signal name="clk0001" domainBase="ns" count="201" scale="1" description="reg" sampleType="5" end="8001">
+            <samples len="1">FQgGAA8ASOBAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIAChAAChIACg=</samples>
+        </record.signal>
+        <record.signal name="string0001" domainBase="ns" count="2" description="string" sampleType="4" end="8001">
+            <samples len="1">FQgGAA8AQOVJRExFIEAFUkVBRCBQ</samples>
+        </record.signal>
+        <record.signal name="reg0004" domainBase="ns" count="1" scale="1" description="reg" sampleType="5" end="8001">
+            <samples len="1">FQgGAA8ASOA=</samples>
+        </record.signal>
+        <record.signal name="reg0005" domainBase="ns" count="1" scale="8" description="reg" sampleType="5" end="8001">
+            <samples len="1">FQgGAA8ASOA=</samples>
+        </record.signal>
+        <record.signal name="reg0006" domainBase="ns" count="1" scale="1" description="reg" sampleType="5" end="8001">
+            <samples len="1">FQgGAA8ASOA=</samples>
+        </record.signal>
+        <record.signal name="reg0007" domainBase="ns" count="1" scale="8" description="reg" sampleType="5" end="8001">
+            <samples len="1">FQgGAA8ASOA=</samples>
+        </record.signal>
+    </record.scope>
+</record>

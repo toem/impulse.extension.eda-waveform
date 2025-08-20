@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<record name="">
+    <cellProducer.message name="Parse Exception" severity="4">
+        <description>Identifier: VCD Reader
+Label: VCD Reader
+Position: 692
+Text: |1!
+Exception: Record not initialized - cannot parse value changes
+</description>
+        <stackTrace>VcdReader.parse(VcdReader.java:524)
+VcdReader.parse(VcdReader.java:398)
+de.toem.impulse.serializer.AbstractProducingRecordReader.run(AbstractProducingRecordReader.java:96)
+de.toem.impulse.serializer.AbstractRecordReader.run(AbstractRecordReader.java:69)
+de.toem.toolkits.pattern.element.serializer.AbstractCellReader.createReference(AbstractCellReader.java:442)
+jdk.internal.reflect.GeneratedMethodAccessor6.invoke(Unknown Source)
+java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+java.base/java.lang.reflect.Method.invoke(Method.java:566)
+de.toem.toolkits.pattern.expression.IBasicExpression$Builder.lambda$new$76(IBasicExpression.java:334)
+de.toem.toolkits.pattern.expression.IExpression$Builder$MemberOperation.call(IExpression.java:1025)
+de.toem.toolkits.pattern.expression.IExpression$Builder$CallOperation.eval(IExpression.java:901)
+de.toem.toolkits.pattern.expression.IExpression$Builder$ExpressionsOperation.eval(IExpression.java:1093)
+de.toem.toolkits.pattern.expression.IExpression$Builder$Expression.eval(IExpression.java:674)
+de.toem.impulse.html.backend.Server$IdeSocket$1$1.execute(Server.java:221)
+de.toem.toolkits.pattern.hooks.ActivesImplementation$1.run(ActivesImplementation.java:60)
+</stackTrace>
+    </cellProducer.message>
+    <record.scope name="scp0001">
+        <record.scope name="scp0002"/>
+    </record.scope>
+</record>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<record name="VCD Record">
+    <record.scope name="scp0001">
+        <record.signal name="wire0001" domainBase="us" count="6" scale="1" description="wire" sampleType="5" end="101">
+            <samples len="1">FQgGAA8ASOBAAAVIAA9AABRIABRAABk=</samples>
+        </record.signal>
+        <record.signal name="wire0002" domainBase="us" count="8" scale="1" description="wire" sampleType="5" end="101">
+            <samples len="1">FQgGAA8AQOBIAAVAAA9IAAVAABRIAApAABlIAAU=</samples>
+        </record.signal>
+        <record.signal name="wire0003" domainBase="us" count="6" scale="1" description="wire" sampleType="5" end="101">
+            <samples len="1">FQgGAA8AQOBIAAVAAChIAApAABlIAAU=</samples>
+        </record.signal>
+        <record.signal name="wire0004" domainBase="us" count="8" scale="1" description="wire" sampleType="5" end="101">
+            <samples len="1">FQgGAA8ASOBAAAVIAA9AABlIAApAABlIAAVAAAo=</samples>
+        </record.signal>
+        <record.signal name="real0001" domainBase="us" count="4" description="real" sampleType="3" end="101">
+            <samples len="1">FQgGAA8AUOgAAAAAAAAkwFAIAAAAAAAAJEAZUAgAAAAAAAAkwBlQCAAAAAAAACRAGQ==</samples>
+        </record.signal>
+        <record.signal name="real0002" domainBase="us" count="20" description="real" sampleType="3" end="101">
+            <samples len="1">FQgGAA8AUOgAAAAAAAAAAFAIAAAAAKu4CEAFUAgAAADA64IXQAVQCAAAAMAqLiBABVAIAAAAwGgFI0AFUAgAAAAAAAAkQAVQCAAAAMBoBSNABVAIAAAAwCouIEAFUAgAAADA64IXQAVQCAAAAACruAhABVAIAQAAICj47LwFUAgAAAAAq7gIwAVQCAAAAMDrghfABVAIAAAAwCouIMAFUAgAAADAaAUjwAVQCAAAAAAAACTABVAIAAAAwGgFI8AFUAgAAADAKi4gwAVQCAAAAMDrghfABVAIAAAAAKu4CMAF</samples>
+        </record.signal>
+    </record.scope>
+</record>

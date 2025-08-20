@@ -1,0 +1,64 @@
+CellReader = Class.forName("de.toem.toolkits.pattern.element.serializer.AbstractCellReader");
+reader = "VCD Reader";
+testDir = pwd+"/";
+properties = Elements.serializers.get(reader).getPropertyModel(null,null);
+
+
+CellReader.createReference(reader, pwd+"/t0001.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0002.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0003.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0004.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0005.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0006.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0007.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0008.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0009.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0010.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0011.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0012.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0013.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0014.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0015.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0016.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0017.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0018.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0019.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0020.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0021.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0022.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0023.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0024.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0025.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0026.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0027.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0028.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0029.vcd",null,null,console);
+CellReader.createReference(reader, pwd+"/t0030.vcd",null,null,console);
+
+// range
+properties.setVal("start","1us");
+properties.setVal("end","3us");
+CellReader.createReference(reader, pwd+"/t0002.vcd", properties.total(), pwd+"/t0002_range.recMl",console);
+properties.reset("start");
+properties.reset("end");
+
+// select
+properties.setVal("include","scp0003");
+properties.setVal("exclude","scp0004");
+properties.setVal("empty","false");
+CellReader.createReference(reader, pwd+"/t0002.vcd", properties.total(), pwd+"/t0002_select.recMl",console);
+properties.reset("include");
+properties.reset("exclude");
+properties.reset("empty");
+
+// vector
+properties.setVal("vector","false");
+CellReader.createReference(reader, pwd+"/t0019.vcd", properties.total(), pwd+"/t0019_novector.recMl",console);
+properties.reset("vector");
+
+// transform
+properties.setVal("delay","10ms");
+properties.setVal("dilate","2");
+CellReader.createReference(reader, pwd+"/t0019.vcd", properties.total(), pwd+"/t0019_transform.recMl",console);
+properties.reset("delay");
+properties.reset("dilate");

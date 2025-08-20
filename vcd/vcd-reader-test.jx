@@ -1,0 +1,67 @@
+
+CellReader = Class.forName("de.toem.toolkits.pattern.element.serializer.AbstractCellReader");
+reader = "VCD Reader";
+samples = pwd+"/samples/";
+properties = Elements.serializers.get(reader).getPropertyModel(null,null);
+result = true;
+
+result = result && CellReader.testCompare(reader, samples+"/t0001.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0002.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0003.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0004.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0005.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0006.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0007.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0008.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0009.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0010.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0011.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0012.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0013.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0014.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0015.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0016.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0017.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0018.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0019.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0020.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0021.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0022.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0023.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0024.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0025.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0026.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0027.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0028.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0029.vcd",null,null,console);
+result = result && CellReader.testCompare(reader, samples+"/t0030.vcd",null,null,console);
+
+// range
+properties.setVal("start","1us");
+properties.setVal("end","3us");
+result = result && CellReader.testCompare(reader, samples+"/t0002.vcd", properties.total(), samples+"/t0002_range.recMl",console);
+properties.reset("start");
+properties.reset("end");
+
+// select
+properties.setVal("include","scp0003");
+properties.setVal("exclude","scp0004");
+properties.setVal("empty","false");
+result = result && CellReader.testCompare(reader, samples+"/t0002.vcd", properties.total(), samples+"/t0002_select.recMl",console);
+properties.reset("include");
+properties.reset("exclude");
+properties.reset("empty");
+
+// vector
+properties.setVal("vector","false");
+result = result && CellReader.testCompare(reader, samples+"/t0019.vcd", properties.total(), samples+"/t0019_novector.recMl",console);
+properties.reset("vector");
+
+// transform
+properties.setVal("delay","10ms");
+properties.setVal("dilate","2");
+result = result && CellReader.testCompare(reader, samples+"/t0019.vcd", properties.total(), samples+"/t0019_transform.recMl",console);
+properties.reset("delay");
+properties.reset("dilate");
+
+return result;

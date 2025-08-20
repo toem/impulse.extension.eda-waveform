@@ -1,0 +1,66 @@
+$date
+	Mon Jul 21 08:55:20 2025
+$end
+$version
+	Test Converter
+$end
+$timescale 1 ns
+$end
+$scope module scp0001 $end
+$scope module scp0002 $end
+$var trireg 1 *@ trireg0001 $end
+$var trireg 1 *# trireg0002 $end
+$var trireg 1 *$ trireg0003 $end
+$upscope $end
+$scope task scp0003 $end
+$var reg 32 (k reg0001[31:0] $end
+$var integer 32 {2 integer0001 $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#2000
+$dumpvars
+x*@
+x*#
+x*$
+bx (k
+bx {2
+$end
+#2020
+1*@
+0*#
+0*$
+b01zx0001x00011 (k
+b0000111010z10x {2
+#2040
+1*$
+#2080
+0*$
+#2120
+1*$
+bz (k
+#2140
+$dumpall 0*@ 1*# 0*$
+bz (k
+b0000111010z10x {2
+$end
+#2160
+0*$
+#4000
+$dumpoff
+x*@
+x*#
+x*$
+bx (k
+bx {2
+$end
+#8000
+$dumpon
+z*@
+0*#
+1*$
+b1 (k
+bx {2
+$end
+#8040
+0*$

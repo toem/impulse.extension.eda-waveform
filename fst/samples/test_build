@@ -1,0 +1,65 @@
+rm -rf *.vcd *.fst
+cp ../../VCD/test/*.vcd .
+vcd2fst -v t0001.vcd -f t0001.fst -4
+vcd2fst -v t0002.vcd -f t0002.fst -F
+vcd2fst -v t0003.vcd -f t0003.fst -Z
+vcd2fst -v t0004.vcd -f t0004.fst -4
+vcd2fst -v t0005.vcd -f t0005.fst -F
+vcd2fst -v t0006.vcd -f t0006.fst -Z
+vcd2fst -v t0007.vcd -f t0007.fst -4
+vcd2fst -v t0008.vcd -f t0008.fst -F
+vcd2fst -v t0009.vcd -f t0009.fst -Z
+vcd2fst -v t0010.vcd -f t0010.fst -4
+vcd2fst -v t0011.vcd -f t0011.fst -F
+vcd2fst -v t0012.vcd -f t0012.fst -Z
+vcd2fst -v t0013.vcd -f t0013.fst -4
+vcd2fst -v t0014.vcd -f t0014.fst -F
+vcd2fst -v t0015.vcd -f t0015.fst -Z
+vcd2fst -v t0016.vcd -f t0016.fst -4
+vcd2fst -v t0017.vcd -f t0017.fst -F
+vcd2fst -v t0018.vcd -f t0018.fst -Z
+vcd2fst -v t0019.vcd -f t0019.fst -4
+vcd2fst -v t0020.vcd -f t0020.fst -F
+vcd2fst -v t0021.vcd -f t0021.fst -Z
+vcd2fst -v t0022.vcd -f t0022.fst -4
+vcd2fst -v t0023.vcd -f t0023.fst -F
+vcd2fst -v t0024.vcd -f t0024.fst -Z
+vcd2fst -v t0025.vcd -f t0025.fst -4
+vcd2fst -v t0026.vcd -f t0026.fst -F
+vcd2fst -v t0027.vcd -f t0027.fst -Z
+vcd2fst -v t0028.vcd -f t0028.fst -4
+vcd2fst -v t0029.vcd -f t0029.fst -F
+vcd2fst -v t0030.vcd -f t0030.fst -Z
+
+rm -rf *.vcd 
+
+fst2vcd t0001.fst > t0001.vcd
+fst2vcd t0002.fst > t0002.vcd
+fst2vcd t0003.fst > t0003.vcd
+fst2vcd t0004.fst > t0004.vcd
+fst2vcd t0005.fst > t0005.vcd
+fst2vcd t0006.fst > t0006.vcd
+fst2vcd t0007.fst > t0007.vcd
+fst2vcd t0008.fst > t0008.vcd
+fst2vcd t0009.fst > t0009.vcd
+fst2vcd t0010.fst > t0010.vcd
+fst2vcd t0011.fst > t0011.vcd
+fst2vcd t0012.fst > t0012.vcd
+fst2vcd t0013.fst > t0013.vcd
+fst2vcd t0014.fst > t0014.vcd
+fst2vcd t0015.fst > t0015.vcd
+fst2vcd t0016.fst > t0016.vcd
+fst2vcd t0017.fst > t0017.vcd
+fst2vcd t0018.fst > t0018.vcd
+fst2vcd t0019.fst > t0019.vcd
+fst2vcd t0020.fst > t0020.vcd
+fst2vcd t0021.fst > t0021.vcd
+fst2vcd t0022.fst > t0022.vcd
+fst2vcd t0023.fst > t0023.vcd
+fst2vcd t0024.fst > t0024.vcd
+fst2vcd t0025.fst > t0025.vcd
+fst2vcd t0026.fst > t0026.vcd
+fst2vcd t0027.fst > t0027.vcd
+fst2vcd t0028.fst > t0028.vcd
+fst2vcd t0029.fst > t0029.vcd
+fst2vcd t0030.fst > t0030.vcd

@@ -1,0 +1,44 @@
+$date
+	Mon Jul 21 08:55:20 2025
+$end
+$version
+	Test Converter
+$end
+$timescale 1 ns $end
+$scope module scp0001 $end
+$var wire 32 ! wire0001 $end
+$var wire 1 @ wire0002 $end
+$var wire 1 # wire0003 $end
+$var wire 1 $ wire0004 $end
+$var wire 1 % wire0005 $end
+$var wire 1 ^ wire0006 $end
+$upscope $end
+$enddefinitions $end
+#0
+b01111110 !
+1@
+0#
+1$
+0%
+1^
+#4
+0@
+#8
+1@
+#12
+0@
+#16
+1@
+#20
+0@
+#44
+b1 !
+1#
+#64
+b010101010101001010101010101010 !
+0#
+#80
+1%
+#92
+
+

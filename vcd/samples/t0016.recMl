@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<record name="VCD Record">
+    <record.scope name="scp0001">
+        <record.signal name="wire0001" domainBase="ps" count="2" scale="1" description="wire" sampleType="5" end="152000000001">
+            <samples len="1">FQgGAA8ASOBAYAD487ERAAAA</samples>
+        </record.signal>
+        <record.signal name="wire0002" domainBase="ps" count="2" scale="12" description="wire" sampleType="5" end="152000000001">
+            <samples len="1">FQgGAA8AUOEBQGAA8OdjIwAAAA==</samples>
+        </record.signal>
+    </record.scope>
+</record>

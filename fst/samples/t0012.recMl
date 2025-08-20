@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<record name="VCD Record">
+    <record.scope name="scp0001">
+        <record.signal name="real0001" domainBase="ps" count="10" description="real" sampleType="3" end="40000000000001">
+            <samples len="1">FQgGAA8AUOgAAAAAAAAAAFBoYDhVKXpqL0AAQJRSowMAAFBoXjhVKXpqH0AAQJRSowMAAFBoQNA4xqbxFEAAQJRSowMAAFBoXThVKXpqD0AAQJRSowMAAFBoGC1EVPshCUAAQJRSowMAAFBoPtA4xqbxBEAAQJRSowMAAFBoyERVhbPzAUAAQJRSowMAAFBoXzhVKXpq/z8AQJRSowMAAFBoqxWhXd7s+z8AQJRSowMAAA==</samples>
+        </record.signal>
+    </record.scope>
+</record>

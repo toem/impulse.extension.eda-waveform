@@ -1,0 +1,24 @@
+$date
+	Mon Jul 21 08:55:25 2025
+$end
+$version
+	Test Converter
+$end
+$timescale
+	1ns
+$end
+$scope module scp0001 $end
+$var real 64 s0 real0001 $end
+$var real 64 s1 real0002 $end
+$var real 64 s1 real0003 $end
+$var real 64 s1 real0004 $end
+$upscope $end
+$enddefinitions $end
+$dumpvars
+r4.71238898038469 s0
+r6.283185307179586 s1
+$end
+#4
+r9.42477796076938 s0
+r7.853981633974483 s1
+#8

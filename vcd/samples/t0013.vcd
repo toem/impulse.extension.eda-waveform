@@ -1,0 +1,3367 @@
+$date
+	Mon Jul 21 08:55:20 2025
+$end
+
+$version
+	Test Converter
+$end
+
+$timescale
+     1 ps
+$end
+
+$scope module scp0001 $end
+$var wire 1 aaa clk0001 $end
+$var wire 1 aab rst0001 $end
+$var wire 1 aac wire0001 $end
+$var wire 1 aad wire0002 $end
+$var wire 2 aae wire0003[1:0] $end
+$var wire 6 aaf wire0004[5:0] $end
+$var wire 2 aag wire0005[1:0] $end
+$var wire 6 aah wire0006[5:0] $end
+$var wire 14 aai wire0007[13:0] $end
+$var wire 14 aaj wire0008[13:0] $end
+$var wire 1 aak wire0009 $end
+$var wire 1 aal wire0010 $end
+$var wire 1 aam wire0011 $end
+$var wire 1 aan wire0012 $end
+$var wire 2 aao wire0013[1:0] $end
+$var wire 6 aap wire0014[5:0] $end
+$var wire 2 aaq wire0015[1:0] $end
+$var wire 6 aar wire0016[5:0] $end
+$var wire 14 aas wire0017[13:0] $end
+$var wire 14 aat wire0018[13:0] $end
+$var wire 1 aau wire0019 $end
+$var wire 1 aav wire0020 $end
+$var wire 1 aaw wire0021 $end
+$var wire 1 aax wire0022 $end
+$var wire 2 aay wire0023[1:0] $end
+$var wire 6 aaz wire0024[5:0] $end
+$var wire 2 aba wire0025[1:0] $end
+$var wire 6 abb wire0026[5:0] $end
+$var wire 14 abc wire0027[13:0] $end
+$var wire 14 abd wire0028[13:0] $end
+$var wire 1 abe wire0029 $end
+$var wire 1 abf wire0030 $end
+$var wire 2 abg wire0031[1:0] $end
+$var wire 16 abh wire0032[15:0] $end
+$var wire 16 abi wire0033[15:0] $end
+$var wire 4 abj wire0034[3:0] $end
+$var wire 4 abk wire0035[3:0] $end
+$var wire 3 abl wire0036[2:0] $end
+$var wire 8 abm wire0037[7:0] $end
+$var wire 3 abn wire0038[2:0] $end
+$var wire 8 abo wire0039[7:0] $end
+$var wire 3 abp wire0040[2:0] $end
+$var wire 3 abq wire0041[2:0] $end
+$var wire 1 abr wire0042 $end
+$var wire 1 abs wire0043 $end
+$var wire 16 abt wire0044[15:0] $end
+$var wire 16 abu wire0045[15:0] $end
+$var wire 16 abv wire0046[15:0] $end
+$var wire 16 abw wire0047[15:0] $end
+$var wire 16 abx wire0048[15:0] $end
+$var wire 16 aby wire0049[15:0] $end
+$var wire 16 abz wire0050[15:0] $end
+$var wire 16 aca wire0051[15:0] $end
+$var wire 16 acb wire0052[15:0] $end
+$var wire 16 acc wire0053[15:0] $end
+$var wire 16 acd wire0054[15:0] $end
+$var wire 16 ace wire0055[15:0] $end
+$var wire 16 acf wire0056[15:0] $end
+$var wire 16 acg wire0057[15:0] $end
+$var wire 16 ach wire0058[15:0] $end
+$var wire 16 aci wire0059[15:0] $end
+$var wire 16 acj wire0060[15:0] $end
+$var wire 16 ack wire0061[15:0] $end
+$var wire 16 acl wire0062[15:0] $end
+$var wire 16 acm wire0063[15:0] $end
+$var wire 16 acn wire0064[15:0] $end
+$var wire 16 aco wire0065[15:0] $end
+$var wire 16 acp wire0066[15:0] $end
+$var wire 16 acq wire0067[15:0] $end
+$var wire 16 acr wire0068[15:0] $end
+$var wire 16 acs wire0069[15:0] $end
+$var wire 16 act wire0070[15:0] $end
+$var wire 16 acu wire0071[15:0] $end
+$var wire 16 acv wire0072[15:0] $end
+$var wire 16 acw wire0073[15:0] $end
+$var wire 16 acx wire0074[15:0] $end
+$var wire 16 acy wire0075[15:0] $end
+$var wire 16 acz wire0076[15:0] $end
+$var wire 16 ada wire0077[15:0] $end
+$var wire 16 adb wire0078[15:0] $end
+$var wire 16 adc wire0079[15:0] $end
+$var wire 16 add wire0080[15:0] $end
+$var wire 16 ade wire0081[15:0] $end
+$var wire 16 adf wire0082[15:0] $end
+$var wire 16 adg wire0083[15:0] $end
+$var wire 16 adh wire0084[15:0] $end
+$var wire 16 adi wire0085[15:0] $end
+$var wire 16 adj wire0086[15:0] $end
+$var wire 16 adk wire0087[15:0] $end
+$var wire 16 adl wire0088[15:0] $end
+$var wire 16 adm wire0089[15:0] $end
+$var wire 16 adn wire0090[15:0] $end
+$var wire 16 ado wire0091[15:0] $end
+$var wire 16 adp wire0092[15:0] $end
+$var wire 16 adq wire0093[15:0] $end
+$var wire 16 adr wire0094[15:0] $end
+$var wire 16 ads wire0095[15:0] $end
+$var wire 16 adt wire0096[15:0] $end
+$var wire 16 adu wire0097[15:0] $end
+$var wire 16 adv wire0098[15:0] $end
+$var wire 16 adw wire0099[15:0] $end
+$var wire 16 adx wire0100[15:0] $end
+$var wire 16 ady wire0101[15:0] $end
+$var wire 16 adz wire0102[15:0] $end
+$var wire 16 aea wire0103[15:0] $end
+$var wire 16 aeb wire0104[15:0] $end
+$var wire 16 aec wire0105[15:0] $end
+$var wire 16 aed wire0106[15:0] $end
+$var wire 16 aee wire0107[15:0] $end
+$var wire 16 aef wire0108[15:0] $end
+$var wire 16 aeg wire0109[15:0] $end
+$var wire 16 aeh wire0110[15:0] $end
+$var wire 16 aei wire0111[15:0] $end
+$var wire 16 aej wire0112[15:0] $end
+$var wire 16 aek wire0113[15:0] $end
+$var wire 16 ael wire0114[15:0] $end
+$var wire 16 aem wire0115[15:0] $end
+$var wire 16 aen wire0116[15:0] $end
+$var wire 16 aeo wire0117[15:0] $end
+$var wire 16 aep wire0118[15:0] $end
+$var wire 16 aeq wire0119[15:0] $end
+$var wire 16 aer wire0120[15:0] $end
+$var wire 16 aes wire0121[15:0] $end
+$var wire 16 aet wire0122[15:0] $end
+$var wire 16 aeu wire0123[15:0] $end
+$var wire 16 aev wire0124[15:0] $end
+$var wire 16 aew wire0125[15:0] $end
+$var wire 16 aex wire0126[15:0] $end
+$var wire 16 aey wire0127[15:0] $end
+$var wire 16 aez wire0128[15:0] $end
+$var wire 16 afa wire0129[15:0] $end
+$var wire 16 afb wire0130[15:0] $end
+$var wire 16 afc wire0131[15:0] $end
+$var wire 16 afd wire0132[15:0] $end
+$var wire 16 afe wire0133[15:0] $end
+$var wire 16 aff wire0134[15:0] $end
+$var wire 16 afg wire0135[15:0] $end
+$var wire 16 afh wire0136[15:0] $end
+$var wire 16 afi wire0137[15:0] $end
+$var wire 16 afj wire0138[15:0] $end
+$var wire 16 afk wire0139[15:0] $end
+$upscope $end
+$enddefinitions  $end
+
+
+$dumpvars
+1aaa
+0aab
+1aac
+1aad
+b1 aae
+b011111 aaf
+b00 aag
+b0 aah
+b1 aai
+b1 aaj
+1aak
+1aal
+1aam
+1aan
+b1 aao
+b1 aap
+b1 aaq
+b1 aar
+b1 aas
+b1 aat
+1aau
+1aav
+1aaw
+1aax
+b1 aay
+b1 aaz
+b1 aba
+b1 abb
+b1 abc
+b1 abd
+1abe
+1abf
+b1 abg
+b001011111 abh
+b00001111 abi
+b0111 abj
+b0111 abk
+b00 abl
+b1 abm
+b001 abn
+b0111111 abo
+b010 abp
+b01 abq
+0abr
+0abs
+b1 abt
+b1 abu
+b1 abv
+b1 abw
+b1 abx
+b1 aby
+b1 abz
+b1 aca
+b1 acb
+b1 acc
+b1 acd
+b1 ace
+b1 acf
+b1 acg
+b1 ach
+b1 aci
+b1 acj
+b1 ack
+b1 acl
+b1 acm
+b1 acn
+b1 aco
+b1 acp
+b1 acq
+b1 acr
+b1 acs
+b1 act
+b1 acu
+b1 acv
+b1 acw
+b1 acx
+b1 acy
+b1 acz
+b1 ada
+b1 adb
+b1 adc
+b1 add
+b1 ade
+b1 adf
+b1 adg
+b1 adh
+b1 adi
+b1 adj
+b1 adk
+b1 adl
+b1 adm
+b1 adn
+b1 ado
+b1 adp
+b1 adq
+b1 adr
+b1 ads
+b1 adt
+b1 adu
+b1 adv
+b1 adw
+b1 adx
+b1 ady
+b1 adz
+b1 aea
+b1 aeb
+b1 aec
+b1 aed
+b1 aee
+b1 aef
+b1 aeg
+b1 aeh
+b1 aei
+b1 aej
+b1 aek
+b1 ael
+b1 aem
+b1 aen
+b1 aeo
+b1 aep
+b1 aeq
+b1 aer
+b1 aes
+b1 aet
+b1 aeu
+b1 aev
+b1 aew
+b1 aex
+b1 aey
+b1 aez
+b1 afa
+b1 afb
+b1 afc
+b1 afd
+b1 afe
+b1 aff
+b1 afg
+b1 afh
+b1 afi
+b1 afj
+b1 afk
+$end
+
+#4000
+0aaa
+0aac
+0aad
+b0000 abt
+b01111 abu
+b0110 abv
+b01100 abw
+b01010 abx
+b01011 aby
+b00111 abz
+b00110 aca
+b0000 acb
+b01100 acc
+b00111 acd
+b01101 ace
+b00000 acf
+b011110 acg
+b00110 ach
+b00110 aci
+b00011 acj
+b01000 ack
+b0100 acl
+b0010 acm
+b01001 acn
+b00101 aco
+b0001 acp
+b0101 acq
+b01111 acr
+b01110 acs
+b0001 act
+b0110 acu
+b000 acv
+b01110 acw
+b01011 acx
+b0010 acy
+
+#24000
+1aaa
+
+#40000
+1aab
+
+#44000
+0aaa
+1aac
+b01101 abt
+b0001 abu
+b0101 abv
+b00111 abw
+b00000 abx
+b01000 aby
+b01000 abz
+b00001 aca
+b00101 acb
+b00110 acc
+b01010 acd
+b00011 ace
+b00001 acf
+b01110 acg
+b01101 ach
+b00001 aci
+b011111 acj
+b0010 acl
+b01011 acm
+b011110 acn
+b01101 aco
+b001 acp
+b01011 acq
+b01101 acr
+b01010 acs
+b01101 acu
+b00010 acv
+b01010 acw
+b01100 acx
+b00101 acy
+
+#64000
+1aaa
+
+#84000
+0aaa
+b011000 abt
+b011001 abu
+b01001 abv
+b01001 abw
+b00101 abx
+b01011 aby
+b00110 abz
+b011111 aca
+b00100 acb
+b011111 acc
+b011100 acd
+b011011 ace
+b00000 acf
+b01011 acg
+b0001 ach
+b0011 aci
+b00100 acj
+b01100 ack
+b00100 acl
+b00010 acm
+b00100 acn
+b00110 aco
+b01100 acp
+b0001 acq
+b01111 acr
+b01011 acs
+b01011 act
+b01111 acu
+b01010 acv
+b01011 acw
+b01001 acx
+b00000 acy
+
+#104000
+1aaa
+
+#124000
+0aaa
+b00111 abt
+b00011 abu
+b01100 abv
+b00110 abw
+b00110 abx
+b01010 aby
+b00100 abz
+b01011 aca
+b0000 acb
+b00110 acc
+b00110 acd
+b00011 ace
+b00001 acf
+b00101 acg
+b01001 ach
+b01110 aci
+b00110 ack
+b00101 acm
+b00011 aco
+b01010 acp
+b0111 acq
+b01101 acr
+b01000 act
+b0010 acu
+b0111 acv
+b01101 acw
+b01011 acx
+b00101 acy
+
+#144000
+1aaa
+
+#164000
+0aaa
+b00 abt
+b01101 abu
+b01010 abv
+b01001 abw
+b01000 abx
+b01001 aby
+b00111 abz
+b01110 aca
+b0101 acc
+b0001 acd
+b00101 ace
+b01011 acf
+b00111 acg
+b00100 ach
+b00011 aci
+b01010 acj
+b00101 ack
+b01000 acl
+b01100 acm
+b00111 acn
+b00111 aco
+b01100 acp
+b0000 acq
+b01110 acr
+b01010 acs
+b00100 act
+b01000 acu
+b0000 acv
+b01110 acw
+b0000 acx
+b01000 acy
+
+#184000
+1aaa
+
+#204000
+0aaa
+b01101 abt
+b011111 abu
+b01111 abv
+b010 abw
+b00111 abx
+b0000 aby
+b01111 abz
+b01101 aca
+b0101 acb
+b0010 acc
+b00100 acd
+b00100 ace
+b00100 acf
+b01011 acg
+b0110 ach
+b01010 aci
+b0000 acj
+b01101 ack
+b01110 acl
+b001 acm
+b0001 acn
+b01101 aco
+b01101 acp
+b0000 acr
+b01101 acs
+b01010 act
+b01100 acu
+b01101 acv
+b0100 acw
+b0101 acx
+
+#224000
+1aaa
+
+#244000
+0aaa
+b00010 abt
+b00010 abu
+b01011 abv
+b0010 abw
+b01100 abx
+b0001 aby
+b01100 abz
+b0101 aca
+b0111 acb
+b01011 acc
+b01101 acd
+b0110 ace
+b01010 acf
+b00110 acg
+b01110 ach
+b0011 aci
+b011 acj
+b01110 ack
+b01011 acl
+b010 acm
+b0000000000000000 acn
+b0000000000000000 aco
+b010 acp
+b01100 acr
+b0001 acs
+b0010 act
+b01110 acu
+b0011 acv
+b0 acw
+b01111 acx
+b00111 acy
+
+#264000
+1aaa
+
+#284000
+0aaa
+b00110 abt
+b00111 abu
+b00111 abv
+b01101 abw
+b0001 abx
+b01000 aby
+b0110 aca
+b01101 acb
+b01000 acc
+b0111 acd
+b0000000000000001 ace
+b0111 acf
+b00111 acg
+b01101 ach
+b01001 acj
+b00110 ack
+b01101 acl
+b0000 acm
+b001 acn
+b1 aco
+b011 acp
+b01110 acq
+b01111 acr
+b000 acs
+b000 act
+b01101 acu
+b0110 acv
+b0011 acy
+
+#304000
+1aaa
+
+#324000
+0aaa
+b01000 abt
+b01100 abu
+b01100 abv
+b001 abw
+b01011 abx
+b01101 aby
+b011 abz
+b0001 aca
+b00011 acb
+b01010 acc
+b0001 acd
+b0110 ace
+b0001 acf
+b01010 acg
+b0010 ach
+b01010 aci
+b00111 acj
+b0111 ack
+b0111 acl
+b01110 acm
+b0101 acn
+b0110 aco
+b0000 acp
+b0110 acs
+b0011 act
+b01011 acu
+b001 acv
+b0111 acw
+b010 acx
+b0000000000000011 acy
+
+#344000
+1aaa
+
+#364000
+0aaa
+b01111 abt
+b0001 abu
+b01110 abv
+b0011 abw
+b01101 abx
+b01110 aby
+b0000000000000010 abz
+b000 aca
+b00001 acb
+b01110 acc
+b01111 acd
+b01011 ace
+b0100 acf
+b00111 acg
+b00110 ach
+b0100 aci
+b0000000000000110 acj
+b011 ack
+b01001 acl
+b01100 acm
+b01111 aco
+b0010 acp
+b0001 acq
+b0101 acr
+b010 acs
+b0110 act
+b0111 acu
+b000 acv
+b0100 acw
+b00 acx
+b01111 acy
+
+#384000
+1aaa
+
+#404000
+0aaa
+b01001 abt
+b00111 abu
+b0000 abw
+b000 abx
+b01100 aby
+b0101 abz
+b0 aca
+b00100 acb
+b01001 acc
+b0101 acd
+b0101 ace
+b0001 acf
+b01000 acg
+b0000 ach
+b0000000000000001 aci
+b0000000000000001 acj
+b01110 ack
+b00110 acl
+b01011 acm
+b0001 acn
+b000 aco
+b0011 acp
+b01100 acq
+b0100 acr
+b01 acs
+b0000000000000001 act
+b0010 acu
+b01011 acv
+b01110 acw
+b0100 acx
+b1 acy
+
+#424000
+1aaa
+
+#444000
+0aaa
+b01100 abt
+b01101 abu
+b0011 abv
+b0110 abw
+b001 abx
+b0111 aby
+b0000 abz
+b0100 aca
+b01101 acb
+b01110 acc
+b011 acd
+b010 ace
+b00101 acf
+b00101 acg
+b0110 ach
+b1 aci
+b0111 acj
+b000 ack
+b001 acl
+b0000 acm
+b0010 acn
+b00 aco
+b0000 acp
+b01101 acq
+b0011 acr
+b01101 acs
+b01001 act
+b00110 acu
+b01110 acv
+b01001 acw
+b010 acx
+b0000000000011000 acy
+
+#464000
+1aaa
+
+#484000
+0aaa
+b0111 abu
+b0000000000010000 abv
+b0000000000001001 abw
+b000 abx
+b0000000000000010 aby
+b0000000000000011 abz
+b0000000000000000 aca
+b010 acb
+b0110 acc
+b0000 acd
+b01010 ace
+b01011 acf
+b01101 acg
+b01011 ach
+b0100 aci
+b0110 acj
+b0000000000000001 ack
+b0000000000000011 acl
+b0110 acm
+b01000 acn
+b0101 aco
+b0101 acp
+b000 acq
+b0000000000000100 acr
+b0100 acs
+b01101 act
+b0100 acu
+b0011 acv
+b0101 acw
+b0000000000001100 acx
+b0000000000000101 acy
+
+#504000
+1aaa
+
+#524000
+0aaa
+b01001 abt
+b000 abu
+b0000000000010101 abv
+b0000000000001011 abw
+b001 abx
+b011 aby
+b011 abz
+b0000000000000101 aca
+b0100 acb
+b00001 acc
+b01100 acd
+b001 ace
+b0100 acf
+b0010 acg
+b0001 ach
+b0111 aci
+b0111 acj
+b0000000000000100 ack
+b0111 acl
+b01011 acm
+b01100 acn
+b0000000000000101 aco
+b0110 acp
+b01 acq
+b0000000000001001 acr
+b0111 acs
+b0001 act
+b01001 acu
+b01010 acv
+b0 acw
+b0000000000001101 acx
+b0010 acy
+
+#544000
+1aaa
+
+#564000
+0aaa
+b0100 abt
+b0110 abu
+b01 abv
+b001 abw
+b010 abx
+b001 aby
+b001 abz
+b0010 aca
+b011110 acb
+b010101 acc
+b010110 acd
+b01110 ace
+b001 ach
+b0 aci
+b010 acj
+b0000000000000001 ack
+b0001 acl
+b00001 acm
+b010 acn
+b0000000000001011 aco
+b01110 acp
+b0111 acq
+b0000000000000111 acr
+b0000 acs
+b01010 act
+b0000 acu
+b000 acv
+b00 acw
+b01 acx
+b011 acy
+
+#584000
+1aaa
+
+#604000
+0aaa
+b01111 abt
+b00111 abu
+b0100 abv
+b1 abx
+b0000000000000011 aby
+b0 abz
+b01000 aca
+b011000 acb
+b0000000000000111 acc
+b0000000000000101 acd
+b00111 ace
+b01011 acf
+b0000 acg
+b0110 ach
+b0111 aci
+b0000 acj
+b0111 ack
+b01100 acl
+b00000 acm
+b01 acn
+b1 aco
+b00011 acp
+b01101 acq
+b00 acr
+b01111 acs
+b0011 act
+b010 acu
+b00 acv
+b001 acw
+b0000000000000100 acx
+b0000000000010100 acy
+
+#624000
+1aaa
+
+#644000
+0aaa
+b01010 abt
+b01101 abu
+b0111 abv
+b0000000000000010 abw
+b0000000000000010 abx
+b0000000000000010 aby
+b001 abz
+b0011 aca
+b00100 acb
+b0000000000000001 acc
+b0000000000011101 acd
+b0000000000000100 ace
+b01110 acf
+b01011 acg
+b0 ach
+b00111 acj
+b00111 ack
+b00101 acl
+b01110 acm
+b0000000000000000 acn
+b0100 aco
+b00010 acp
+b0010 acq
+b0100 acr
+b00011 acs
+b0001 act
+b000 acu
+b01 acw
+b010 acy
+
+#664000
+1aaa
+
+#684000
+0aaa
+b0000 abt
+b01100 abu
+b01001 abv
+b000 abw
+b0000000000000100 abx
+b0000000000001000 aby
+b0000000000000100 abz
+b001 aca
+b0010 acb
+b00001 acc
+b01100 acd
+b0110 ace
+b0110 acf
+b01100 acg
+b0001 ach
+b0010 aci
+b01000 acj
+b00101 ack
+b0100 acm
+b0 acn
+b0001 aco
+b01100 acp
+b0011 acq
+b01001 acr
+b01001 acs
+b000 act
+b0 acu
+b0000000000000100 acw
+b1 acx
+b01011 acy
+
+#704000
+1aaa
+
+#724000
+0aaa
+b01101 abt
+b010001 abu
+b00011 abv
+b0100 abw
+b0 abx
+b0000000000001111 aby
+b0000000000010011 abz
+b000 aca
+b0000 acb
+b01001 acc
+b01000 acd
+b01010 ace
+b0000 acf
+b00001 ach
+b01010 aci
+b01110 acj
+b01011 ack
+b00100 acl
+b0010 acm
+b01 acn
+b0101 aco
+b0000 acp
+b01010 acq
+b01101 acr
+b011 acs
+b0011 act
+b0011 acu
+b0001 acv
+b0010 acw
+b0001 acx
+b010 acy
+
+#744000
+1aaa
+
+#764000
+0aaa
+b0001 abt
+b011111 abu
+b0001 abv
+b00 abw
+b0000000000000010 abx
+b0000000000010101 aby
+b0000000000011011 abz
+b0111 aca
+b0101 acb
+b0001 acc
+b01010 acd
+b01101 ace
+b01 acf
+b000 acg
+b0001 ach
+b010 aci
+b01 acj
+b0010 ack
+b01010 acl
+b0011 acm
+b010 acn
+b01111 aco
+b01100 acp
+b01011 acq
+b01110 acr
+b01110 acs
+b0001 act
+b01110 acu
+b01010 acw
+b01101 acx
+b0111 acy
+
+#784000
+1aaa
+
+#804000
+0aaa
+b01001 abt
+b0010 abu
+b0011 abv
+b1 abw
+b0000000000000101 abx
+b0000000000001010 aby
+b0000000000001101 abz
+b0 aca
+b1 acb
+b0000 acc
+b0011 acd
+b1 ace
+b0000000000000101 acf
+b001 acg
+b0000000000000011 ach
+b0000000000010010 aci
+b0000000000000011 acj
+b01111 ack
+b0111 acl
+b000 acm
+b0100 acn
+b0001 aco
+b0001 acp
+b1 acq
+b010 acr
+b01011 acs
+b01 act
+b000 acu
+b00 acv
+b0101 acw
+b010 acx
+b01101 acy
+
+#824000
+1aaa
+
+#844000
+0aaa
+b00101 abt
+b01111 abu
+b0111 abv
+b000 abw
+b0100 abx
+b001 aby
+b0000000000001110 abz
+b0000000000001010 aca
+b0000000000000101 acb
+b01110 acc
+b001 acd
+b0000000000010010 ace
+b0000000000000100 acg
+b0000000000000000 ach
+b00 aci
+b0011 acj
+b00010 ack
+b0000000000000110 acm
+b0000 acn
+b000 aco
+b0100 acp
+b010 acq
+b0110 acr
+b0110 acs
+b1 act
+b0110 acu
+b0000000000000101 acv
+b0000000000000100 acw
+b00 acx
+b0100 acy
+
+#864000
+1aaa
+
+#884000
+0aaa
+b01100 abt
+b00 abu
+b0000000000001000 abv
+b0111 abw
+b0000 abx
+b0000000000001000 aby
+b0000000000010010 abz
+b000 aca
+b0000000000000000 acb
+b1 acc
+b0010 acd
+b0000000000001010 ace
+b0000000000001100 acg
+b00 ach
+b011111 aci
+b00011 acj
+b01010 ack
+b01111 acl
+b0010 acm
+b01101 acn
+b0000000000000000 aco
+b01 acp
+b01101 acq
+b00100 acr
+b0101 acs
+b0011 act
+b00111 acu
+b0000000000000011 acv
+b0000000000010000 acw
+b000 acx
+b1 acy
+
+#904000
+1aaa
+
+#924000
+0aaa
+b0110 abt
+b0000000000000101 abu
+b01111 abv
+b01111 abw
+b0000000000000010 abx
+b0000000000000010 aby
+b0010 abz
+b0000 aca
+b0110 acb
+b010 acc
+b0 ace
+b01 acf
+b0000000000001001 acg
+b0000000000000100 ach
+b00111 aci
+b00101 acj
+b0011 ack
+b00 acl
+b00000 acm
+b01010 acn
+b010 aco
+b01101 acp
+b00110 acq
+b01100 acr
+b0000 acs
+b0100 act
+b01101 acu
+b0101 acv
+b1 acw
+b01111 acx
+b0000000000001100 acy
+
+#944000
+1aaa
+
+#964000
+0aaa
+b0000000000000111 abt
+b01000 abu
+b011011 abv
+b00 abw
+b01 abx
+b01110 aby
+b01100 abz
+b0 aca
+b0010 acb
+b00011 acc
+b01101 acd
+b0100 ace
+b000 acf
+b0000000000001101 acg
+b0010 ach
+b01011 aci
+b01111 acj
+b0110 ack
+b01 acl
+b00010 acm
+b0010 acn
+b0000 aco
+b011001 acp
+b00011 acq
+b01111 acr
+b01100 acs
+b00 act
+b0111 acu
+b0110 acv
+b0111 acw
+b000 acx
+b0000000000011101 acy
+
+#984000
+1aaa
+
+#1004000
+0aaa
+b0011 abt
+b00010 abu
+b01110 abv
+b010 abw
+b01100 abx
+b0001 aby
+b00 abz
+b010 aca
+b0110 acc
+b01001 acd
+b01010 ace
+b011 acf
+b010 acg
+b00011 ach
+b00111 aci
+b0001 ack
+b0001 acl
+b00011 acm
+b00110 acn
+b00110 aco
+b00111 acp
+b01110 acq
+b00000 acr
+b011101 acs
+b01100 act
+b01011 acu
+b011 acv
+b0 acw
+b0000000000000000 acx
+b0000000000001110 acy
+
+#1024000
+1aaa
+
+#1044000
+0aaa
+b00001 abt
+b01110 abu
+b0011 abv
+b001 abw
+b01 abx
+b00110 aby
+b01101 abz
+b0010 aca
+b0011 acb
+b1 acc
+b0010 acd
+b01001 ace
+b01111 acf
+b01010 acg
+b01011 ach
+b01110 aci
+b01011 acj
+b01011 ack
+b00111 acl
+b00110 acm
+b01001 acn
+b01001 aco
+b00010 acp
+b011110 acq
+b011101 acr
+b00101 acs
+b0011 act
+b01101 acu
+b01111 acv
+b01101 acw
+b0010 acx
+b01111 acy
+
+#1064000
+1aaa
+
+#1084000
+0aaa
+b00101 abt
+b0101 abu
+b001 abv
+b00 abw
+b0000000000000011 abx
+b01011 aby
+b0000 abz
+b0111 aca
+b01011 acb
+b01110 acc
+b0001 acd
+b01010 ace
+b00011 acf
+b01100 acg
+b0101 ach
+b0110 aci
+b0000 acj
+b010 ack
+b0110 acl
+b01101 acm
+b0000 acn
+b01011 aco
+b011010 acp
+b010010 acq
+b00011 acr
+b0001 acs
+b0100 act
+b01110 acu
+b0001 acv
+b01000 acw
+b01101 acx
+b01010 acy
+
+#1104000
+1aaa
+
+#1124000
+0aaa
+b000 abt
+b0000000000000001 abu
+b0101 abv
+b00111 abw
+b0011 abx
+b000 abz
+b1 aca
+b01010 acb
+b0011 acd
+b01010 acf
+b0111 acg
+b010 ach
+b0001 aci
+b0111 acj
+b0000000000001010 ack
+b0000000000000101 acl
+b01010 acm
+b010001 acn
+b011111 aco
+b00111 acp
+b00001 acq
+b00010 acr
+b01101 acs
+b0001 act
+b0111 acu
+b010 acv
+b01010 acw
+b01110 acx
+
+#1144000
+1aaa
+
+#1164000
+0aaa
+b0000000000001010 abt
+b0000000000000011 abu
+b0000 abv
+b011111 abw
+b00000 abx
+b00110 aby
+b0000 abz
+b0110 aca
+b01101 acb
+b0100 acc
+b0 acd
+b01100 acf
+b000 acg
+b00 ach
+b0000000000000001 aci
+b0000000000000010 acj
+b0 ack
+b0010 acl
+b01001 acm
+b00111 acn
+b01101 aco
+b01101 acp
+b01001 acq
+b00100 acr
+b01001 acs
+b0110 act
+b000 acu
+b0110 acv
+b0011 acw
+b0010 acx
+b00010 acy
+
+#1184000
+1aaa
+
+#1204000
+0aaa
+b0000000000000010 abt
+b000 abu
+b0010 abv
+b01001 abw
+b01001 abx
+b01111 aby
+b0100 abz
+b01111 aca
+b01011 acb
+b010 acc
+b011 acd
+b01111 ace
+b000 acf
+b011 acg
+b011 ach
+b0000000000000111 aci
+b010 acj
+b01110 ack
+b0111 acl
+b00 acm
+b0 acn
+b0010 aco
+b01111 acp
+b00110 acq
+b01100 acs
+b0100 act
+b0011 acu
+b01110 acv
+b01100 acw
+b01111 acx
+b01010 acy
+
+#1224000
+1aaa
+
+#1244000
+0aaa
+b0000 abt
+b00010 abu
+b01110 abv
+b000 abw
+b0010 abx
+b0010 aby
+b01111 abz
+b0010 aca
+b0110 acb
+b001 acd
+b0 ace
+b0000000000000110 acf
+b0000000000000001 acg
+b1 ach
+b0011 aci
+b01101 acj
+b0000000000000000 ack
+b0000000000000111 acl
+b0000000000000011 acm
+b000 acn
+b0000 aco
+b000 acp
+b0011 acq
+b01100 acr
+b0110 acs
+b0000000000000000 act
+b1 acu
+b00110 acv
+b011011 acw
+b0100 acx
+b00 acy
+
+#1264000
+1aaa
+
+#1284000
+0aaa
+1aad
+
+#1304000
+1aaa
+
+#1324000
+0aaa
+
+#1344000
+1aaa
+
+#1364000
+0aaa
+
+#1384000
+1aaa
+
+#1404000
+0aaa
+
+#1424000
+1aaa
+
+#1444000
+0aaa
+
+#1464000
+1aaa
+
+#1484000
+0aaa
+
+#1504000
+1aaa
+
+#1524000
+0aaa
+
+#1544000
+1aaa
+
+#1564000
+0aaa
+
+#1584000
+1aaa
+
+#1604000
+0aaa
+
+#1624000
+1aaa
+
+#1644000
+0aaa
+
+#1664000
+1aaa
+
+#1684000
+0aaa
+
+#1704000
+1aaa
+
+#1724000
+0aaa
+
+#1744000
+1aaa
+
+#1764000
+0aaa
+
+#1784000
+1aaa
+
+#1804000
+0aaa
+
+#1824000
+1aaa
+
+#1844000
+0aaa
+0aam
+0aan
+b011111 aap
+b00 aaq
+b0 aar
+b01111 acz
+b00 ada
+b011 adb
+b0 adc
+b0 ade
+b0000000000000001 adf
+b01 adg
+b0000000000000000 adh
+b0000000000000000 adi
+b0000000000000000 ado
+b0 adq
+
+#1864000
+1aaa
+
+#1884000
+0aaa
+1aam
+b0 aat
+b1 acz
+b01 ada
+b1 adb
+b1 adc
+b1 ade
+b1 adf
+b1 adg
+b0 adh
+b1 adi
+b1 ado
+b1 adq
+b0 adr
+b0 adu
+
+#1904000
+1aaa
+
+#1924000
+0aaa
+b01 aat
+b0000000000000000 acz
+b1 ada
+b0 adb
+b0000000000000000 adc
+b0000000000000000 ade
+b0 adf
+b1 adh
+b0000000000000000 adn
+b0000000000000000 ado
+b1 adr
+b1 adu
+
+#1944000
+1aaa
+
+#1964000
+0aaa
+b00 aat
+b0 acz
+b0000000000000001 ada
+b0000000000000000 adb
+b0 adc
+b0000000000000000 add
+b1 ade
+b1 adf
+b0000000000000000 adi
+b1 ado
+
+#1984000
+1aaa
+
+#2004000
+0aaa
+b011 aat
+b1 acz
+b0 ada
+b1 add
+b0000000000000000 ade
+b1 adi
+b0000000000000000 adm
+b1 adn
+
+#2024000
+1aaa
+
+#2044000
+0aaa
+b010 aat
+b0 acz
+b1 ada
+b1 adc
+b1 ade
+b0 adj
+b1 adm
+
+#2064000
+1aaa
+
+#2084000
+0aaa
+b001 aat
+b1 adb
+b0 adg
+b0000000000000000 adh
+b1 adj
+b0000000000000000 adk
+b0000000000000000 ado
+b0000000000000000 adq
+b0 adu
+
+#2104000
+1aaa
+
+#2124000
+0aaa
+b000 aat
+b0000000000000001 adb
+b0 adc
+b0000000000000000 adg
+b1 adh
+b1 adq
+b1 adu
+
+#2144000
+1aaa
+
+#2164000
+0aaa
+b0111 aat
+b1 acz
+b1 adb
+b0000000000000000 ade
+b1 adg
+b0 adh
+b1 adk
+b0000000000000000 adm
+b1 ado
+
+#2184000
+1aaa
+
+#2204000
+0aaa
+b0110 aat
+b0000000000000000 adc
+b0 ade
+b1 adh
+b1 adm
+b0 adp
+
+#2224000
+1aaa
+
+#2244000
+0aaa
+b0101 aat
+b0 ada
+b1 adc
+b1 ade
+b0000000000000000 adf
+b1 adp
+b0 ads
+
+#2264000
+1aaa
+
+#2284000
+0aaa
+b0100 aat
+b1 ada
+b1 adf
+b0 adl
+b1 ads
+
+#2304000
+1aaa
+
+#2324000
+0aaa
+b0011 aat
+b0 adb
+b0 adc
+b0 ade
+b0000000000000000 adg
+b0 adi
+b1 adl
+b0 adn
+b0 ado
+b0000000000000000 adq
+
+#2344000
+1aaa
+
+#2364000
+0aaa
+b0010 aat
+b1 adb
+b1 adc
+b0000000000000000 add
+b0 adf
+b1 adg
+b1 adi
+b1 adn
+b1 ado
+b1 adq
+
+#2384000
+1aaa
+
+#2404000
+0aaa
+b0001 aat
+b0 ada
+b0000000000000000 adb
+b0000000000000000 adc
+b1 add
+b1 ade
+b1 adf
+b0 adi
+b0000000000000000 adp
+b0 ads
+
+#2424000
+1aaa
+
+#2444000
+0aaa
+b0000 aat
+b1 ada
+b1 adb
+b1 adc
+b0 add
+b1 adi
+b1 adp
+b1 ads
+
+#2464000
+1aaa
+
+#2484000
+0aaa
+b01111 aat
+b1 add
+b0 adi
+b0000000000000000 adj
+b0000000000000000 adr
+
+#2504000
+1aaa
+
+#2524000
+0aaa
+b01110 aat
+b1 adi
+b1 adj
+b0 adm
+
+#2544000
+1aaa
+
+#2564000
+0aaa
+b01101 aat
+b0000000000000000 acz
+b0000000000000000 ade
+b0 adf
+b1 adm
+b0000000000000000 adp
+b1 adr
+
+#2584000
+1aaa
+
+#2604000
+0aaa
+b01100 aat
+b1 acz
+b1 ade
+b1 adf
+b0 adi
+b1 adp
+
+#2624000
+1aaa
+
+#2644000
+0aaa
+b01011 aat
+b1 adi
+
+#2664000
+1aaa
+
+#2684000
+0aaa
+b01010 aat
+b0000000000000000 add
+
+#2704000
+1aaa
+
+#2724000
+0aaa
+b01001 aat
+b0000000000000000 adc
+b1 add
+
+#2744000
+1aaa
+
+#2764000
+0aaa
+b01000 aat
+b1 adc
+
+#2784000
+1aaa
+
+#2804000
+0aaa
+b00111 aat
+
+#2824000
+1aaa
+
+#2844000
+0aaa
+b00110 aat
+b0000000000000000 add
+
+#2864000
+1aaa
+
+#2884000
+0aaa
+b00101 aat
+b1 add
+
+#2904000
+1aaa
+
+#2924000
+0aaa
+b00100 aat
+
+#2944000
+1aaa
+
+#2964000
+0aaa
+b00011 aat
+
+#2984000
+1aaa
+
+#3004000
+0aaa
+b00010 aat
+
+#3024000
+1aaa
+
+#3044000
+0aaa
+b00001 aat
+
+#3064000
+1aaa
+
+#3084000
+0aaa
+b00000 aat
+
+#3104000
+1aaa
+
+#3124000
+0aaa
+1aan
+
+#3144000
+1aaa
+
+#3164000
+0aaa
+
+#3184000
+1aaa
+
+#3204000
+0aaa
+
+#3224000
+1aaa
+
+#3244000
+0aaa
+
+#3264000
+1aaa
+
+#3284000
+0aaa
+
+#3304000
+1aaa
+
+#3324000
+0aaa
+
+#3344000
+1aaa
+
+#3364000
+0aaa
+
+#3384000
+1aaa
+
+#3404000
+0aaa
+
+#3424000
+1aaa
+
+#3444000
+0aaa
+
+#3464000
+1aaa
+
+#3484000
+0aaa
+
+#3504000
+1aaa
+
+#3524000
+0aaa
+
+#3544000
+1aaa
+
+#3564000
+0aaa
+
+#3584000
+1aaa
+
+#3604000
+0aaa
+
+#3624000
+1aaa
+
+#3644000
+0aaa
+
+#3664000
+1aaa
+
+#3684000
+0aaa
+0aaw
+0aax
+b011111 aaz
+b00 aba
+b0 abb
+b01101 aef
+b01101 aeg
+b001 aeh
+b01110 aei
+b011100 aej
+b011010 aek
+b011110 ael
+b01001 aem
+b01011 aen
+b00011 aeo
+b011101 aep
+b011111 aeq
+b00000 aer
+b011101 aes
+b00011 aet
+b00010 aeu
+b011111 aev
+b0100 aew
+b011 aex
+b0011 aey
+b0001 aez
+b01100 afa
+b01101 afb
+b0011 afc
+b0100 afd
+b0000 afe
+b01010 aff
+b0011 afg
+b010 afh
+b0000 afi
+b01100 afj
+b01111 afk
+
+#3704000
+1aaa
+
+#3724000
+0aaa
+1aaw
+b0 abd
+b00111 aef
+b01001 aeg
+b0001 aeh
+b01001 aei
+b00101 aej
+b01110 aek
+b01100 ael
+b01000 aen
+b00110 aeo
+b00001 aep
+b00011 aeq
+b01011 aer
+b01101 aes
+b01101 aet
+b00110 aeu
+b00001 aev
+b0000 aew
+b0011 aex
+b01100 aey
+b01100 aez
+b01010 afa
+b0000 afc
+b01100 afd
+b01011 afe
+b01011 aff
+b01110 afg
+b01111 afh
+b01000 afi
+b00100 afj
+b00001 afk
+
+#3744000
+1aaa
+
+#3764000
+0aaa
+b01 abd
+b011111 aef
+b011011 aeg
+b00101 aeh
+b01011 aei
+b01011 aej
+b01111 aek
+b01101 ael
+b00110 aem
+b00010 aen
+b00001 aeo
+b00100 aep
+b00101 aeq
+b01000 aer
+b01100 aes
+b0010 aet
+b01110 aeu
+b01000 aev
+b01011 aew
+b01000 aex
+b00011 aey
+b00110 aez
+b01000 afa
+b01111 afb
+b0010 afc
+b01011 afd
+b01100 afe
+b0000 aff
+b0010 afg
+b01010 afi
+b011100 afk
+
+#3784000
+1aaa
+
+#3804000
+0aaa
+b00 abd
+b01010 aef
+b011101 aeg
+b00110 aeh
+b0011 aei
+b01100 aej
+b00010 aek
+b00011 ael
+b00111 aem
+b00101 aen
+b00110 aeo
+b01001 aep
+b011111 aer
+b00101 aes
+b01100 aet
+b01001 aeu
+b00110 aev
+b01000 aew
+b00101 aex
+b00111 aez
+b01010 afa
+b0001 afb
+b0110 afc
+b0001 afd
+b01011 afe
+b01011 aff
+b0001 afg
+b0100 afh
+b01111 afi
+b01010 afj
+b00111 afk
+
+#3824000
+1aaa
+
+#3844000
+0aaa
+b011 abd
+b000 aef
+b0001 aeg
+b0001 aeh
+b0100 aei
+b01101 aej
+b00100 aek
+b00110 ael
+b01011 aem
+b0001 aen
+b0011 aeo
+b01011 aep
+b00000 aeq
+b00001 aer
+b01101 aes
+b01011 aet
+b00000 aeu
+b00011 aev
+b01011 aew
+b01011 aex
+b01010 aey
+b01101 aez
+b01100 afa
+b01110 afb
+b0100 afc
+b0100 afd
+b01001 afe
+b00100 aff
+b01011 afg
+b0011 afh
+b01011 afj
+b01111 afk
+
+#3864000
+1aaa
+
+#3884000
+0aaa
+b010 abd
+b01001 aef
+b0010 aeg
+b0000 aeh
+b01110 aei
+b01110 aej
+b01111 aek
+b01111 ael
+b01110 aem
+b0011 aen
+b0001 aeo
+b00110 aep
+b00001 aeq
+b00110 aer
+b0001 aes
+b0001 aet
+b01101 aeu
+b0000 aev
+b01101 aew
+b0010 aey
+b0101 aez
+b0011 afa
+b01101 afb
+b01111 afc
+b0000 afe
+b01011 aff
+b01101 afg
+b0101 afh
+b0110 afi
+b01000 afk
+
+#3904000
+1aaa
+
+#3924000
+0aaa
+b001 abd
+b011101 aef
+b00101 aeg
+b00101 aeh
+b01100 aei
+b0001 aej
+b01101 aek
+b01110 ael
+b01111 aem
+b01100 aen
+b01001 aeo
+b01111 aep
+b0011 aeq
+b00111 aer
+b00100 aes
+b01110 aet
+b010 aeu
+b010 aev
+b01010 aew
+b01001 aex
+b0110 aey
+b00 aez
+b1 afa
+b0101 afb
+b01100 afc
+b0000 afd
+b0101 afe
+b0010 aff
+b01111 afg
+b0110 afh
+b011 afi
+b01110 afj
+b00100 afk
+
+#3944000
+1aaa
+
+#3964000
+0aaa
+b000 abd
+b01001 aef
+b01001 aeg
+b00100 aeh
+b0000 aei
+b0101 aej
+b01100 aek
+b01100 ael
+b01011 aen
+b01100 aeo
+b010 aep
+b0 aeq
+b01100 aer
+b01000 aet
+b01110 aeu
+b0011 aev
+b01110 aew
+b0001 aex
+b0111 aey
+b001 aez
+b0000000000000010 afa
+b010 afb
+b01111 afd
+b0100 aff
+b0010 afh
+b0111 afi
+b01111 afj
+b01101 afk
+
+#3984000
+1aaa
+
+#4004000
+0aaa
+b0111 abd
+b01110 aef
+b0111 aeg
+b0000 aeh
+b0001 aei
+b0110 aej
+b0100 aek
+b0100 ael
+b0000 aem
+b01100 aen
+b01111 aeo
+b0010 aep
+b0000 aeq
+b01110 aer
+b0010 aes
+b01011 aet
+b01000 aeu
+b0110 aev
+b010 aew
+b000 aex
+b0011 aey
+b0000 aez
+b001 afa
+b0101 afb
+b01111 afc
+b000 afd
+b01 afe
+b011 aff
+b0101 afg
+b0110 afh
+b0010 afj
+b0010 afk
+
+#4024000
+1aaa
+
+#4044000
+0aaa
+b0110 abd
+b00111 aef
+b001 aeg
+b0101 aeh
+b01111 aei
+b0000 aej
+b0011 aek
+b001 ael
+b0100 aem
+b01011 aeo
+b01010 aep
+b01010 aeq
+b01111 aer
+b0011 aes
+b0000 aet
+b001 aeu
+b0000000000001000 aev
+b01101 aex
+b01111 aey
+b0001 aez
+b0100 afa
+b0000 afb
+b01 aff
+b0111 afg
+b0011 afh
+b0110 afj
+
+#4064000
+1aaa
+
+#4084000
+0aaa
+b0101 abd
+b01100 aef
+b01110 aeg
+b01010 aeh
+b01110 aei
+b01111 aej
+b01101 aek
+b0101 ael
+b0110 aem
+b01101 aen
+b01101 aeo
+b0100 aep
+b0101 aeq
+b0000 aer
+b01011 aes
+b01111 aet
+b0000000000000010 aeu
+b0000000000001011 aev
+b0011 aew
+b00100 aex
+b01101 aey
+b0100 aez
+b0110 afa
+b01011 afc
+b01111 afd
+b0100 afe
+b000 aff
+b0001 afg
+b00101 afh
+b01001 afi
+b01 afk
+
+#4104000
+1aaa
+
+#4124000
+0aaa
+b0100 abd
+b0010 aef
+b01010 aeg
+b00111 aeh
+b0011 aei
+b0110 aej
+b0000 aek
+b0111 ael
+b001 aem
+b0000 aen
+b0010 aeo
+b011 aep
+b0111 aeq
+b01101 aes
+b01110 aet
+b0111 aeu
+b0000000000000000 aev
+b010 aew
+b0010 aex
+b01110 aey
+b0000 aez
+b0101 afa
+b0001 afb
+b01101 afc
+b0010 afd
+b0101 afe
+b0110 aff
+b0011 afg
+b00011 afi
+b0000000000001000 afk
+
+#4144000
+1aaa
+
+#4164000
+0aaa
+b0011 abd
+b000 aeg
+b0 aeh
+b0000000000000000 aei
+b010 aej
+b0111 aek
+b0000000000000000 ael
+b0000000000000011 aem
+b0110 aen
+b0011 aeo
+b0111 aep
+b0011 aeq
+b01111 aes
+b01111 aet
+b0010 aeu
+b001 aev
+b0000000000000000 aew
+b01 aex
+b0010 aey
+b0100 afb
+b000 afc
+b0000000000000001 afd
+b011 afe
+b01111 aff
+b0001 afg
+b0101 afh
+b0110 afi
+b0 afj
+b0000000000000011 afk
+
+#4184000
+1aaa
+
+#4204000
+0aaa
+b0010 abd
+b0011 aef
+b0000000000000010 aeg
+b0000000000001110 aeh
+b0000000000000110 aei
+b001 aej
+b000 aek
+b0000000000000010 ael
+b0000000000000110 aem
+b0101 aen
+b01010 aeo
+b0000 aep
+b0100 aeq
+b0010 aer
+b01100 aes
+b0010 aet
+b00 aeu
+b0111 aev
+b0110 aew
+b000 aex
+b0100 aey
+b0111 aez
+b010 afa
+b010 afb
+b0000000000000000 afc
+b0000000000000111 afd
+b00101 aff
+b01001 afg
+b00 afh
+b0000000000000101 afi
+b0000000000000110 afj
+b00 afk
+
+#4224000
+1aaa
+
+#4244000
+0aaa
+b0001 abd
+b01111 aef
+b0101 aeg
+b1 aeh
+b00 aei
+b010 aej
+b01 aek
+b01 ael
+b0110 aem
+b01000 aen
+b00110 aeo
+b01110 aep
+b0000 aeq
+b01111 aer
+b01111 aes
+b010 aet
+b0000000000000001 aeu
+b0100 aev
+b0000 aew
+b0001 aex
+b01111 aey
+b000 aez
+b01 afa
+b00 afc
+b0000000000000011 afd
+b00 afe
+b01001 aff
+b01011 afg
+b0111 afh
+b00 afi
+b0000000000000100 afj
+b0000000000000011 afk
+
+#4264000
+1aaa
+
+#4284000
+0aaa
+b0000 abd
+b01100 aef
+b01100 aeg
+b0110 aeh
+b001 aei
+b00 aej
+b0000000000000010 aek
+b010 ael
+b01011 aem
+b00110 aen
+b0101 aeo
+b00 aep
+b01111 aeq
+b01100 aer
+b0110 aes
+b1 aet
+b001 aeu
+b01100 aev
+b0010 aew
+b01111 aex
+b01000 aey
+b0110 aez
+b0 afa
+b0100 afb
+b0010 afc
+b00 afd
+b01111 aff
+b0010 afg
+b0110 afh
+b0011 afi
+b01 afj
+b0000000000000110 afk
+
+#4304000
+1aaa
+
+#4324000
+0aaa
+b01111 abd
+b0010 aef
+b01101 aeg
+b011 aeh
+b0000000000000000 aei
+b01 aej
+b0 aek
+b011 ael
+b0100 aem
+b0010 aen
+b0000000000000001 aeo
+b0000000000001000 aep
+b000 aeq
+b01110 aer
+b0001 aes
+b000 aet
+b0011 aeu
+b00101 aev
+b01011 aew
+b01110 aex
+b01110 aey
+b010 aez
+b011 afa
+b0011 afb
+b0110 afd
+b0110 afe
+b0001 aff
+b0111 afg
+b01 afh
+b011 afi
+b010 afk
+
+#4344000
+1aaa
+
+#4364000
+0aaa
+b01110 abd
+b0101 aef
+b00110 aeg
+b01110 aeh
+b011 aei
+b01 aek
+b00 ael
+b011 aem
+b0110 aen
+b0110 aeo
+b010 aep
+b0000 aer
+b01000 aes
+b0000 aet
+b0100 aeu
+b00001 aew
+b01010 aex
+b0111 aey
+b00 aez
+b0011 afa
+b0111 afc
+b0001 afd
+b0001 afe
+b000 aff
+b0000000000000000 afg
+b0000000000000001 afh
+b0000000000000000 afi
+b1 afj
+b0011 afk
+
+#4384000
+1aaa
+
+#4404000
+0aaa
+b01101 abd
+b0011 aef
+b00001 aeg
+b00010 aeh
+b0000 aei
+b0000000000000001 aej
+b0000000000001010 aek
+b0000000000000001 ael
+b0101 aem
+b0000 aen
+b01111 aeo
+b01111 aep
+b0000 aeq
+b0001 aer
+b01101 aes
+b0001 aet
+b0110 aeu
+b01101 aev
+b00101 aew
+b00101 aex
+b0001 aey
+b000 aez
+b01111 afa
+b0001 afb
+b0100 afc
+b01100 afd
+b01100 afe
+b0111 aff
+b01 afg
+b0111 afh
+b0010 afi
+b0110 afj
+b000 afk
+
+#4424000
+1aaa
+
+#4444000
+0aaa
+b01100 abd
+b01101 aef
+b01010 aeg
+b01101 aeh
+b0100 aei
+b0000000000000101 aej
+b0000000000010011 aek
+b0000000000000111 ael
+b0110 aem
+b0110 aen
+b000 aeo
+b0101 aep
+b0011 aeq
+b0111 aer
+b010 aes
+b00 aet
+b001 aeu
+b0110 aev
+b0000 aew
+b01000 aey
+b0100 aez
+b0011 afa
+b01111 afb
+b0000 afc
+b01101 afd
+b01101 aff
+b0000 afg
+b0000 afh
+b01100 afi
+b01111 afj
+b00 afk
+
+#4464000
+1aaa
+
+#4484000
+0aaa
+b01011 abd
+b00110 aef
+b01111 aeg
+b000 aeh
+b01 aei
+b0000000000000100 aej
+b0000000000001011 aek
+b0000000000001000 ael
+b0000000000000011 aem
+b0000000000000001 aen
+b0011 aep
+b011 aeq
+b1 aer
+b0000000000000011 aes
+b0000000000000100 aet
+b00 aeu
+b0111 aev
+b0100 aew
+b0000 aex
+b0000 aey
+b0011 aez
+b0101 afa
+b0110 afb
+b0110 afc
+b0101 afd
+b000 afe
+b000 aff
+b0100 afg
+b001 afh
+b011 afi
+b000 afj
+b01 afk
+
+#4504000
+1aaa
+
+#4524000
+0aaa
+b01010 abd
+b01011 aef
+b0101 aeg
+b010 aeh
+b011 aei
+b0 aej
+b0000000000000010 aek
+b0000000000000100 ael
+b0000000000000111 aem
+b0000000000000101 aen
+b0010 aeo
+b01101 aep
+b1 aeq
+b0000000000000111 aer
+b0000000000000110 aes
+b0000000000000001 aet
+b0010 aeu
+b01010 aev
+b01101 aew
+b0111 aex
+b00 aey
+b0101 aez
+b0111 afa
+b0 afb
+b010 afc
+b0 afe
+b0000000000000100 aff
+b010 afg
+b00 afh
+b0000000000000110 afi
+b0000000000000001 afj
+b0 afk
+
+#4544000
+1aaa
+
+#4564000
+0aaa
+b01001 abd
+b0011 aef
+b0 aeg
+b0 aeh
+b010 aei
+b001 aej
+b0 aek
+b0000000000000000 ael
+b0 aem
+b1 aen
+b000 aeo
+b0110 aep
+b0000000000000010 aeq
+b0000000000000111 aes
+b001 aet
+b00011 aeu
+b00011 aev
+b01100 aew
+b0001 aex
+b0101 aey
+b00 afa
+b1 afb
+b0100 afc
+b01100 afd
+b0011 afe
+b000 aff
+b01111 afg
+b0100 afh
+b0000000000000000 afi
+b00 afj
+b01 afk
+
+#4584000
+1aaa
+
+#4604000
+0aaa
+b01000 abd
+b0000 aef
+b0100 aeg
+b000 aeh
+b0 aei
+b011 aej
+b0111 aek
+b010 ael
+b000 aem
+b000 aen
+b001 aep
+b01 aeq
+b1 aer
+b0000000000000101 aes
+b000 aet
+b00100 aeu
+b01111 aev
+b000 aew
+b01110 aex
+b01000 aey
+b01100 aez
+b0101 afa
+b0110 afb
+b0010 afc
+b01111 afd
+b01101 afe
+b01110 aff
+b0000 afg
+b001 afh
+b01 afi
+b000 afj
+b0000000000000101 afk
+
+#4624000
+1aaa
+
+#4644000
+0aaa
+b00111 abd
+b0010 aef
+b00101 aeg
+b01000 aeh
+b01 aei
+b00 aej
+b01110 aek
+b0100 ael
+b011 aem
+b001 aen
+b0001 aeo
+b0001 aep
+b0110 aeq
+b001 aer
+b0000000000000010 aes
+b01001 aeu
+b0110 aev
+b01 aew
+b0001 aex
+b01001 aey
+b00100 aez
+b00110 afa
+b01011 afb
+b0001 afd
+b01011 afe
+b0001 aff
+b010 afg
+b0000000000000000 afh
+b011 afi
+b010 afj
+b0000000000010001 afk
+
+#4664000
+1aaa
+
+#4684000
+0aaa
+b00110 abd
+b001 aef
+b01011 aeg
+b01001 aeh
+b001 aei
+b0111 aej
+b01100 aek
+b0011 ael
+b00 aem
+b011 aen
+b0011 aeo
+b0000 aep
+b0011 aeq
+b0100 aer
+b001 aes
+b0001 aet
+b00111 aeu
+b0000 aev
+b0001 aew
+b01010 aex
+b00101 aez
+b00011 afa
+b00100 afb
+b00111 afc
+b00111 afd
+b00011 afe
+b01011 aff
+b0100 afg
+b0111 afh
+b0100 afi
+b0111 afj
+b0000000000001011 afk
+
+#4704000
+1aaa
+
+#4724000
+0aaa
+b00101 abd
+b0001 aef
+b0001 aeg
+b0100 aeh
+b010 aei
+b0101 aej
+b01110 aek
+b0110 aem
+b0011 aen
+b0000 aeo
+b01111 aep
+b01010 aeq
+b00110 aer
+b01111 aes
+b0000 aet
+b01010 aeu
+b01110 aev
+b01110 aew
+b00110 aex
+b00001 aey
+b00010 aez
+b00110 afa
+b00000 afb
+b011110 afc
+b00101 afd
+b01000 afe
+b01001 aff
+b01011 afg
+b0000 afh
+b01111 afi
+b01100 afj
+b0100 afk
+
+#4744000
+1aaa
+
+#4764000
+0aaa
+b00100 abd
+b01101 aef
+b01101 aeg
+b0011 aeh
+b00 aei
+b0111 aej
+b0001 ael
+b0011 aem
+b01011 aen
+b01001 aeo
+b01010 aep
+b00100 aeq
+b00001 aer
+b01110 aes
+b000 aet
+b0001 aeu
+b0000 aev
+b001 aew
+b0101 aex
+b011010 aez
+b00010 afa
+b00010 afb
+b00010 afc
+b0000 afd
+b0110 afe
+b01111 aff
+b01110 afg
+b0010 afh
+b01100 afi
+b00110 afj
+b01010 afk
+
+#4784000
+1aaa
+
+#4804000
+0aaa
+b00011 abd
+b1 aef
+b0111 aeg
+b0001 aeh
+b0010 aei
+b0010 aej
+b0000 ael
+b0100 aem
+b0001 aen
+b0000 aeo
+b0001 aep
+b01100 aeq
+b01100 aer
+b0101 aes
+b010 aet
+b0011 aeu
+b0001 aev
+b1 aew
+b0000000000000010 aex
+b01100 aey
+b011110 aez
+b00011 afa
+b00101 afb
+b00111 afc
+b0010 afd
+b0101 afe
+b01110 aff
+b01111 afg
+b0000 afh
+b01010 afi
+b01010 afj
+b01110 afk
+
+#4824000
+1aaa
+
+#4844000
+0aaa
+b00010 abd
+b0000000000000101 aef
+b0000000000000101 aeg
+b0111 aeh
+b00100 aei
+b00111 aej
+b0011 aek
+b0100 ael
+b0001 aem
+b0101 aen
+b1 aeo
+b01 aep
+b0101 aeq
+b0111 aer
+b0110 aes
+b0110 aet
+b010 aeu
+b001 aev
+b00 aew
+b01 aex
+b0011 aey
+b01110 aez
+b01100 afa
+b00111 afb
+b00110 afc
+b01101 afd
+b01111 afe
+b01011 aff
+b0000 afi
+b0011 afj
+
+#4864000
+1aaa
+
+#4884000
+0aaa
+b00001 abd
+b00 aef
+b00 aeg
+b0101 aeh
+b01001 aei
+b01110 aej
+b000 aek
+b0101 ael
+b0100 aen
+b0 aeo
+b0110 aeq
+b00 aer
+b001 aes
+b000 aet
+b0000000000000001 aeu
+b01 aev
+b010 aew
+b00 aex
+b00 aey
+b001 aez
+b0001 afa
+b01100 afb
+b01100 afc
+b01111 afd
+b0001 aff
+b0111 afg
+b0010 afh
+b0111 afj
+b0000 afk
+
+#4904000
+1aaa
+
+#4924000
+0aaa
+b00000 abd
+b01011 aeg
+b01101 aeh
+b011 aei
+b0000000000000001 aej
+b0010 ael
+b0110 aem
+b0101 aen
+b0110 aeo
+b000 aep
+b000 aeq
+b0000000000000010 aer
+b0000000000000000 aes
+b01 aet
+b1 aeu
+b0100 aev
+b000 aew
+b0000000000001000 aex
+b0000000000001000 aey
+b011 aez
+b01110 afa
+b0010 afb
+b000 afc
+b0011 afd
+b0110 aff
+b0 afg
+b01110 afh
+b00101 afi
+b0101 afj
+b000 afk
+
+#4944000
+1aaa
+
+#4964000
+0aaa
+1aax
+
+#4984000
+1aaa
+
+#5004000
+0aaa
+
+#5024000
+1aaa
+
+#5044000
+0aaa
+
+#5064000
+1aaa
+
+#5084000
+0aaa
+
+#5104000
+1aaa
+
+#5124000
+0aaa
+
+#5144000
+1aaa
+
+#5164000
+0aaa
+
+#5184000
+1aaa
+
+#5204000
+0aaa
+
+#5224000
+1aaa
+
+#5244000
+0aaa
+
+#5264000
+1aaa
+
+#5284000
+0aaa
+
+#5304000
+1aaa
+
+#5324000
+0aaa
+
+#5344000
+1aaa
+
+#5364000
+0aaa
+
+#5384000
+1aaa
+
+#5404000
+0aaa
+
+#5424000
+1aaa
+
+#5444000
+0aaa
+
+#5464000
+1aaa
+
+#5484000
+0aaa
+
+#5504000
+1aaa
+
+#5524000
+0aaa
+
+#5544000
+1aaa
+
+#5564000
+0aaa
+
+#5584000
+1aaa
+
+#5604000
+0aaa
+
+#5624000
+1aaa
+
+#5644000
+0aaa
+
+#5664000
+1aaa
+
+#5684000
+0aaa
+
+#5704000
+1aaa
+
+#5724000
+0aaa
+
+#5744000
+1aaa
+
+#5764000
+0aaa
+
+#5784000
+1aaa
+
+#5804000
+0aaa
+
+#5824000
+1aaa
+
+#5844000
+0aaa
+
+#5864000
+1aaa
+
+#5884000
+0aaa
+
+#5904000
+1aaa
+

@@ -1,0 +1,31 @@
+$date
+	Mon Jul 21 08:55:20 2025
+$end
+
+$version
+	Test Converter
+$end
+
+$timescale
+     1 ps
+$end
+
+$scope module scp0001 $end
+$var wire 1 aaa wire0001 $end
+$var wire 12 aab wire0002[11:0] $end
+$upscope $end
+$enddefinitions  $end
+
+
+$dumpvars
+1aaa
+b1 aab
+$end
+
+
+#76000000000
+0aaa
+
+
+#152000000000
+b0 aab
