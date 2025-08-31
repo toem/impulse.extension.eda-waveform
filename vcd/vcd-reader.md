@@ -1,3 +1,19 @@
+---
+title: "VCD (Value Change Dump) Reader"
+author: "Thomas Haber"
+keywords: [VCD, Value Change Dump, impulse, EDA, waveform, simulation, signal analysis, digital, parser, extension]
+description: "The VCD Reader extension for impulse enables efficient import, filtering, and analysis of digital simulation waveforms in the VCD format. Supports advanced configuration, hierarchical browsing, and seamless integration with impulse's visualization and processing tools."
+category: "impulse-extension"
+tags:
+  - extension
+  - eda
+  - vcd
+  - waveform
+  - impulse
+  - simulation
+  - import
+docID: 1096
+---
 # VCD (Value Change Dump) Reader
 
 The VCD Reader enables users to import and analyze digital simulation waveforms in the widely adopted VCD (Value Change Dump) format within the impulse framework. Designed for engineers and verification specialists, it provides a seamless bridge between simulation outputs and impulse's powerful visualization, analysis, and processing tools.
@@ -38,6 +54,11 @@ The parser integrates with impulse's console logging system, providing configura
 ## Known Limitation
 
 - The VCD Reader does not support the `$dumpall`, `$dumpon`, and `$dumpoff` commands. These commands are recognized but ignored during parsing; any value changes triggered by these commands will not be processed or reflected in the imported data.
+
+## Sources and Customization
+
+The reader is delivered with full sources. You may modify, fix, and extend it to fit specific workflows, provided all changes comply with your end user license (EULA).
+
 
 ## Implementation Details
 

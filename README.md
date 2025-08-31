@@ -1,6 +1,19 @@
-<img src="images/eda-waveform.png" alt="EDA Waveform Extension Screenshot" width="196" />
-
-# EDA Waveform Extension for impulse
+<!---
+title: "EDA Waveform Extension"
+author: "Thomas Haber"
+keywords: [EDA, waveform, impulse, VCD, FST, FSDB, WLF, simulation, signal analysis, visualization, extension, electronic design automation]
+description: "Provides an extension for the impulse framework to import and analyze Electronic Design Automation (EDA) waveform data, supporting formats such as VCD, FST, FSDB, and WLF. Enables engineers to visualize and process simulation results from popular EDA tools within impulse."
+category: "impulse-extension"
+tags:
+  - extension
+  - eda
+  - waveform
+  - impulse
+  - simulation
+  - import
+docID: 1091
+--->
+# EDA Waveform Extension
 
 This package provides an extension for the [impulse](https://www.toem.io/impulse) framework, focusing on the import and (optionally) export of Electronic Design Automation (EDA) waveform data. impulse is a powerful, extensible platform for signal analysis, visualization, and processing, widely used in engineering and scientific domains to handle a broad range of data formats.
 
