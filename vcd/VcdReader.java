@@ -1,19 +1,17 @@
-package de.toem.impulse.serializer.vcd;
+package de.toem.impulse.extension.eda.waveform.vcd;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map; 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import de.toem.impulse.cells.record.AbstractSignalProviderCell;
+import de.toem.impulse.ImpulseBase;
+import de.toem.impulse.cells.record.IRecord;
 import de.toem.impulse.cells.record.Record;
-import de.toem.impulse.cells.record.RecordProxy;
 import de.toem.impulse.cells.record.RecordScope;
-import de.toem.impulse.cells.record.RecordSignal;
-import de.toem.impulse.i18n.I18n;
 import de.toem.impulse.samples.IEventSamplesWriter;
 import de.toem.impulse.samples.IFloatSamplesWriter;
 import de.toem.impulse.samples.ILogicSamplesWriter;
@@ -21,32 +19,28 @@ import de.toem.impulse.samples.ISample;
 import de.toem.impulse.samples.ISamples;
 import de.toem.impulse.samples.ISamplesWriter;
 import de.toem.impulse.samples.ITextSamplesWriter;
-import de.toem.impulse.samples.adaptors.old.IPortProgress;
 import de.toem.impulse.samples.domain.IDomainBase;
 import de.toem.impulse.samples.domain.TimeBase;
 import de.toem.impulse.samples.writer.SamplesWriter;
 import de.toem.impulse.serializer.AbstractSingleDomainRecordReader;
 import de.toem.impulse.serializer.IParsingRecordReader;
+import de.toem.impulse.usecase.eda.waveform.WaveformVariable;
 import de.toem.toolkits.core.Utils;
+import de.toem.toolkits.pattern.bundles.Bundles;
 import de.toem.toolkits.pattern.element.ICell;
-import de.toem.toolkits.pattern.element.ICover;
 import de.toem.toolkits.pattern.element.serializer.ISerializerDescriptor;
+import de.toem.toolkits.pattern.element.serializer.JavaSerializerPreference;
 import de.toem.toolkits.pattern.element.serializer.SingletonSerializerPreference.DefaultSerializerConfiguration;
 import de.toem.toolkits.pattern.filter.FilterExpression;
-import de.toem.toolkits.pattern.properties.IPropertyModel;
-import de.toem.toolkits.pattern.registry.IRegistryObject;
-import de.toem.toolkits.pattern.registry.RegistryAnnotation;
-import de.toem.toolkits.pattern.systemLog.SystemLog;
-import de.toem.toolkits.pattern.threading.IProgress;
-import de.toem.toolkits.utils.serializer.ParseException;
-import de.toem.impulse.usecase.eda.waveform.WaveformVariable;
 import de.toem.toolkits.pattern.ide.ConfiguredConsoleStream;
 import de.toem.toolkits.pattern.ide.IConsoleStream;
 import de.toem.toolkits.pattern.ide.Ide;
-import de.toem.toolkits.pattern.element.serializer.JavaSerializerPreference;
-import de.toem.toolkits.pattern.simpleJava.ISimpleJava;
-import de.toem.toolkits.pattern.element.Elements;
-import de.toem.toolkits.pattern.threading.Progress;
+import de.toem.toolkits.pattern.properties.IPropertyModel;
+import de.toem.toolkits.pattern.registry.IRegistryObject;
+import de.toem.toolkits.pattern.registry.RegistryAnnotation;
+import de.toem.toolkits.pattern.threading.IProgress;
+import de.toem.toolkits.utils.serializer.ParseException;
+import de.toem.toolkits.utils.text.MultilineText;
 /**
  * VcdReader: VCD (Value Change Dump) Waveform Importer for impulse
  *
@@ -292,19 +286,30 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
         return ir == (ir & (SUPPORT_PROPERTIES | SUPPORT_SOURCE));
     }
 
+    /**
+     * Create Java serializer preference cell for this reader.
+     *
+     * This factory method returns an ICell describing the Java preference for the serializer (used in UI/preferences). It configures label, help,
+     * pattern and certificate and points to the implementation bundle.
+     *
+     * @return configured ICell instance for Java serializer preference
+     */
     public static ICell createJavaPreference() {
-        
-        JavaSerializerPreference p =  new  JavaSerializerPreference();
-        p.setName(Annotation.label);
-        p.description = Annotation.description;
-        p.helpUrl = Annotation.helpURL;
-        p.namePattern = Annotation.defaultNamePattern;
-        p.formatType = Annotation.formatType;
-        p.certificate = Annotation.certificate;
-        p.impl = ISimpleJava.getClassSourceFromJar(VcdReader.class);
-        p.javaBundle = "de.toem.impulse.base";
-        p.cellType = "record";
-        return p;
+        try {
+            JavaSerializerPreference p = new JavaSerializerPreference();
+            p.setName(Annotation.label);
+            p.description = Annotation.description;
+            p.helpUrl = Annotation.helpURL;
+            p.namePattern = Annotation.defaultNamePattern;
+            p.formatType = Annotation.formatType;
+            p.certificate = Annotation.certificate;
+            p.impl = MultilineText.toXml(Bundles.getBundleSourceEntryAsString(VcdReader.class));
+            p.javaBundle = Utils.commarize(ImpulseBase.BUNDLE_ID,Bundles.getBundleId(VcdReader.class));
+            p.cellType = IRecord.Record.TYPE;
+            return p;
+        } catch (Throwable e) {
+        }
+        return null;
     }
     
     // ========================================================================================================================

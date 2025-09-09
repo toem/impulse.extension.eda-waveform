@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+    <extension point="de.toem.toolkits.general.serializer">\
+        <serializer class="de.toem.impulse.extension.eda.waveform.vcd.VcdReader"/>\
+    </extension>
+    <extension point="de.toem.toolkits.general.serializer">\
+        <serializer class="de.toem.impulse.extension.eda.waveform.fst.FstReader"/>\
+    </extension>
+</plugin>
+

@@ -1,61 +1,60 @@
-package de.toem.impulse.serializer.fst;
+package de.toem.impulse.extension.eda.waveform.fst;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import de.toem.toolkits.pattern.registry.RegistryAnnotation;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.LinkedHashMap;
-import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
+
 import com.occultusterra.compression.FastLZ;
-import kanzi.IndexedByteArray;
-import kanzi.function.LZ4Codec;
-import de.toem.impulse.samples.domain.TimeBase;
-import de.toem.impulse.samples.ISample;
-import de.toem.impulse.samples.ILogicSamplesWriter;
+
+import de.toem.impulse.ImpulseBase;
+import de.toem.impulse.cells.record.IRecord;
 import de.toem.impulse.samples.IFloatSamplesWriter;
+import de.toem.impulse.samples.ILogicSamplesWriter;
+import de.toem.impulse.samples.ISample;
+import de.toem.impulse.samples.domain.TimeBase;
 import de.toem.impulse.serializer.AbstractSingleDomainRecordReader;
 import de.toem.impulse.serializer.IParsingRecordReader;
+import de.toem.impulse.usecase.eda.waveform.WaveformVariable;
+import de.toem.toolkits.core.Utils;
+import de.toem.toolkits.pattern.bundles.Bundles;
+import de.toem.toolkits.pattern.element.ICell;
 import de.toem.toolkits.pattern.element.serializer.ISerializerDescriptor;
+import de.toem.toolkits.pattern.element.serializer.JavaSerializerPreference;
 import de.toem.toolkits.pattern.element.serializer.SingletonSerializerPreference.DefaultSerializerConfiguration;
+import de.toem.toolkits.pattern.filter.FilterExpression;
 import de.toem.toolkits.pattern.ide.ConfiguredConsoleStream;
 import de.toem.toolkits.pattern.ide.IConsoleStream;
 import de.toem.toolkits.pattern.ide.Ide;
-import de.toem.toolkits.pattern.properties.IPropertyModel;
-import de.toem.toolkits.pattern.threading.IProgress;
-import de.toem.toolkits.utils.serializer.ParseException;
-import de.toem.toolkits.pattern.registry.RegistryAnnotation;
-import de.toem.toolkits.pattern.element.ICell;
-import de.toem.impulse.cells.record.IRecord;
-import de.toem.impulse.usecase.eda.waveform.WaveformVariable;
 import de.toem.toolkits.pattern.pageable.BytesPageable;
 import de.toem.toolkits.pattern.pageable.Pageable;
-import de.toem.toolkits.pattern.filter.FilterExpression;
-import de.toem.toolkits.pattern.element.serializer.JavaSerializerPreference;
-import de.toem.toolkits.pattern.simpleJava.ISimpleJava;
-import de.toem.toolkits.core.Utils;
+import de.toem.toolkits.pattern.properties.IPropertyModel;
+import de.toem.toolkits.pattern.registry.RegistryAnnotation;
+import de.toem.toolkits.pattern.threading.IProgress;
+import de.toem.toolkits.utils.serializer.ParseException;
+import de.toem.toolkits.utils.text.MultilineText;
+import kanzi.IndexedByteArray;
+import kanzi.function.LZ4Codec;
 
 /**
  * FST (Fast Signal Trace) Record Reader for the impulse framework.
  *
- * This reader processes FST (Fast Signal Trace) files, which are commonly used in digital
- * design and verification workflows. FST is a compact binary format for storing digital signals
- * and their values over time.
+ * This reader processes FST (Fast Signal Trace) files, which are commonly used in digital design and verification workflows. FST is a compact binary
+ * format for storing digital signals and their values over time.
  *
- * The reader currently supports basic block parsing to identify different sections of the FST file:
- * - Header blocks (FST_BL_HDR = 0)
- * - Value Change blocks (FST_BL_VCDATA = 1)
- * - Blackout blocks (FST_BL_BLACKOUT = 2)
- * - Geometry blocks (FST_BL_GEOM = 3)
- * - Hierarchy blocks (FST_BL_HIER = 4 and compressed variants 6, 7)
+ * The reader currently supports basic block parsing to identify different sections of the FST file: - Header blocks (FST_BL_HDR = 0) - Value Change
+ * blocks (FST_BL_VCDATA = 1) - Blackout blocks (FST_BL_BLACKOUT = 2) - Geometry blocks (FST_BL_GEOM = 3) - Hierarchy blocks (FST_BL_HIER = 4 and
+ * compressed variants 6, 7)
  */
 @RegistryAnnotation(annotation = FstReader.Annotation.class)
 public class FstReader extends AbstractSingleDomainRecordReader {
@@ -184,7 +183,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     // Actual attribute end tag in file
     private static final int FST_ST_GEN_ATTREND = 253;
 
-    // Scope  types
+    // Scope types
     private static final int FST_ST_VCD_MODULE = 0;
 
     private static final int FST_ST_VCD_TASK = 1;
@@ -258,19 +257,19 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     static final int[] token = new int[256];
 
     static {
-        for (int i = 0; i < 256; i++) token[i] = TOKEN_NONE;
-        token[0<<1] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_0_BITS;
-        token[1<<1] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_1_BITS;
+        for (int i = 0; i < 256; i++)
+            token[i] = TOKEN_NONE;
+        token[0 << 1] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_0_BITS;
+        token[1 << 1] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_1_BITS;
 
-        token[1 | (0<<1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_X_BITS;
-        token[1 | (1<<1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_Z_BITS;
-        token[1 | (2<<1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_H_BITS;
-        token[1 | (3<<1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_U_BITS;
-        token[1 | (4<<1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_W_BITS;
-        token[1 | (5<<1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_L_BITS;
-        token[1 | (6<<1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_D_BITS;
-        token[1 | (7<<1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_UNKNOWN_BITS;    
-
+        token[1 | (0 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_X_BITS;
+        token[1 | (1 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_Z_BITS;
+        token[1 | (2 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_H_BITS;
+        token[1 | (3 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_U_BITS;
+        token[1 | (4 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_W_BITS;
+        token[1 | (5 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_L_BITS;
+        token[1 | (6 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_D_BITS;
+        token[1 | (7 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_UNKNOWN_BITS;
 
         token['0'] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_0_BITS;
         token['1'] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_1_BITS;
@@ -353,14 +352,13 @@ public class FstReader extends AbstractSingleDomainRecordReader {
 
     private long end = Long.MAX_VALUE;
 
-    //private long delay = 0;
-    //private double scale = 1;
+    // private long delay = 0;
+    // private double scale = 1;
     // ========================================================================================================================
     // FST Variable Class
     // ========================================================================================================================
     /**
-     * FST-specific variable class that extends WaveformVariable.
-     * Simple implementation with default constructor only.
+     * FST-specific variable class that extends WaveformVariable. Simple implementation with default constructor only.
      */
     public class FstVariable extends WaveformVariable<Integer> {
 
@@ -377,7 +375,6 @@ public class FstReader extends AbstractSingleDomainRecordReader {
 
         byte[] idata;
 
-
         /**
          * Default constructor
          */
@@ -388,48 +385,52 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         /**
          * Write initial value for this variable from frame data and log it.
          *
-         * @param frameData The frame data bytes
-         * @param offset Starting offset in the frame data
-         * @param length Number of bytes to read (should match this variable's scale)
-         * @param console Console stream for logging
-         * @param handle Handle ID for logging purposes
+         * @param frameData
+         *            The frame data bytes
+         * @param offset
+         *            Starting offset in the frame data
+         * @param length
+         *            Number of bytes to read (should match this variable's scale)
+         * @param console
+         *            Console stream for logging
+         * @param handle
+         *            Handle ID for logging purposes
          */
         public void setInitialValue(byte[] data, int pos, int length) {
-            //console.log("setInitialValue", name, (char)data[0]);  
-            //if (length == 1 && data[pos] == 'x')
-            //data[pos+0] = 'u';
+            // console.log("setInitialValue", name, (char)data[0]);
+            // if (length == 1 && data[pos] == 'x')
+            // data[pos+0] = 'u';
             if (length > 0 && data != null && pos >= 0 && (pos + length) <= data.length) {
                 idata = new byte[length];
                 System.arraycopy(data, pos, idata, 0, length);
             }
         }
 
-        public void assertInitialValue()  throws ParseException{
+        public void assertInitialValue() throws ParseException {
             // intialiaze frame data
-            if (this.idata != null){
+            if (this.idata != null) {
                 byte[] idata = this.idata;
                 this.idata = null; // reset idata to avoid reusing it
-                writeChange(startTime,false, idata, 0, idata.length);
+                writeChange(startTime, false, idata, 0, idata.length);
             }
         }
-        
 
         /**
          * Add a value change for a 1-bit signal
          */
         public void writeChange1Bit(long timestamp, byte data) throws ParseException {
-            //console.log("writeChange1Bit", name, timestamp, data);                                         }
+            // console.log("writeChange1Bit", name, timestamp, data); }
             int t = token[data];
             if (t == TOKEN_NONE)
                 throw new ParseException("Invalid logic vector state: " + data);
 
             // intialiaze frame data
-            if (this.idata != null){
+            if (this.idata != null) {
                 byte[] idata = this.idata;
                 this.idata = null; // reset idata to avoid reusing it
-                if (timestamp > startTime){
-                    writeChange(startTime,false, idata, 0, idata.length);
-                } 
+                if (timestamp > startTime) {
+                    writeChange(startTime, false, idata, 0, idata.length);
+                }
             }
 
             byte state = (byte) (t & 0xf);
@@ -451,15 +452,15 @@ public class FstReader extends AbstractSingleDomainRecordReader {
          */
         public void writeChange(long timestamp, boolean bitData, byte[] data, int pos, int length) throws ParseException {
             // intialiaze frame data
-            if (this.idata != null){
+            if (this.idata != null) {
                 byte[] idata = this.idata;
                 this.idata = null; // reset idata to avoid reusing it
-                if (timestamp > startTime){
-                    writeChange(startTime,false, idata, 0, idata.length);
-                } 
+                if (timestamp > startTime) {
+                    writeChange(startTime, false, idata, 0, idata.length);
+                }
             }
 
-            //console.log("writeChange", name, timestamp, bitData, pos, length);
+            // console.log("writeChange", name, timestamp, bitData, pos, length);
             if (dataType == ISample.DATA_TYPE_LOGIC) {
                 if (states == null)
                     states = new byte[scale];
@@ -498,9 +499,9 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                         }
                     }
                 else if (writer instanceof ILogicSamplesWriter)
-                    ((ILogicSamplesWriter) writer).write(timestamp, tag,  (byte) ISample.STATE_0_BITS, states, 0, scale);
+                    ((ILogicSamplesWriter) writer).write(timestamp, tag, (byte) ISample.STATE_0_BITS, states, 0, scale);
 
-            }else if (dataType == ISample.DATA_TYPE_FLOAT) {
+            } else if (dataType == ISample.DATA_TYPE_FLOAT) {
                 // For floating-point signals, we expect 8 bytes (double precision)
                 // convert byte array to long and then to double
                 if (length == 8 && (pos + 8) <= data.length) {
@@ -517,12 +518,12 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                         }
                     }
                     double value = Double.longBitsToDouble(bits);
-                    //console.log("writeChange", name, timestamp, bits, value);
+                    // console.log("writeChange", name, timestamp, bits, value);
                     if (writer != null) {
-                        ((IFloatSamplesWriter)writer).write(timestamp, false, value);
+                        ((IFloatSamplesWriter) writer).write(timestamp, false, value);
                     }
                 }
-                
+
             } else {
                 throw new ParseException("Unsupported data type for writeChange: " + dataType);
             }
@@ -545,15 +546,23 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     /**
      * Fully parameterized constructor for the FstReader.
      *
-     * @param descriptor The serializer descriptor providing contextual information
-     * @param contentName The name of the content being processed (e.g., file name)
-     * @param contentType The MIME type or other format descriptor of the content
-     * @param cellType The type of cell that will be produced
-     * @param configuration Configuration name for specialized settings
-     * @param properties Additional properties as key-value pairs
-     * @param in The input stream containing the FST data to be read
+     * @param descriptor
+     *            The serializer descriptor providing contextual information
+     * @param contentName
+     *            The name of the content being processed (e.g., file name)
+     * @param contentType
+     *            The MIME type or other format descriptor of the content
+     * @param cellType
+     *            The type of cell that will be produced
+     * @param configuration
+     *            Configuration name for specialized settings
+     * @param properties
+     *            Additional properties as key-value pairs
+     * @param in
+     *            The input stream containing the FST data to be read
      */
-    public FstReader(ISerializerDescriptor descriptor, String contentName, String contentType, String cellType, String configuration, String[][] properties, InputStream in) {
+    public FstReader(ISerializerDescriptor descriptor, String contentName, String contentType, String cellType, String configuration,
+            String[][] properties, InputStream in) {
         super(descriptor, configuration, properties, getPropertyModel(descriptor, null), in);
     }
 
@@ -563,9 +572,11 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     /**
      * Checks if the reader supports the given request and context.
      *
-     * @param request  The request type.
-     * @param context  The context type.
-     * @return         True if supported, false otherwise.
+     * @param request
+     *            The request type.
+     * @param context
+     *            The context type.
+     * @return True if supported, false otherwise.
      */
     public static boolean supports(Object request, Object context) {
         int ir = request instanceof Integer ? ((Integer) request).intValue() : -1;
@@ -574,18 +585,30 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         return ir == (ir & (SUPPORT_PROPERTIES | SUPPORT_SOURCE));
     }
 
+    /**
+     * Create Java serializer preference cell for this reader.
+     *
+     * This factory method returns an ICell describing the Java preference for the serializer (used in UI/preferences). It configures label, help,
+     * pattern and certificate and points to the implementation bundle.
+     *
+     * @return configured ICell instance for Java serializer preference
+     */
     public static ICell createJavaPreference() {
-        JavaSerializerPreference p = new JavaSerializerPreference();
-        p.setName(Annotation.label);
-        p.description = Annotation.description;
-        p.helpUrl = Annotation.helpURL;
-        p.namePattern = Annotation.defaultNamePattern;
-        p.formatType = Annotation.formatType;
-        p.certificate = Annotation.certificate;
-        p.impl = ISimpleJava.getClassSourceFromJar(FstReader.class);
-        p.javaBundle = "de.toem.impulse.base";
-        p.cellType = "record";
-        return p;
+        try {
+            JavaSerializerPreference p = new JavaSerializerPreference();
+            p.setName(Annotation.label);
+            p.description = Annotation.description;
+            p.helpUrl = Annotation.helpURL;
+            p.namePattern = Annotation.defaultNamePattern;
+            p.formatType = Annotation.formatType;
+            p.certificate = Annotation.certificate;
+            p.impl = MultilineText.toXml(Bundles.getBundleSourceEntryAsString(FstReader.class));
+            p.javaBundle = Utils.commarize(ImpulseBase.BUNDLE_ID, Bundles.getBundleId(FstReader.class));
+            p.cellType = IRecord.Record.TYPE;
+            return p;
+        } catch (Throwable e) {
+        }
+        return null;
     }
 
     // ========================================================================================================================
@@ -594,8 +617,10 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     /**
      * Creates and returns the property model for configuring this reader.
      *
-     * @param object The serializer descriptor, used to provide context
-     * @param context Additional context information
+     * @param object
+     *            The serializer descriptor, used to provide context
+     * @param context
+     *            Additional context information
      * @return The property model containing all configurable properties for this reader
      */
     static public IPropertyModel getPropertyModel(ISerializerDescriptor object, Object context) {
@@ -608,8 +633,10 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     /**
      * Determines if this reader can process the specified input based on the file name and content type.
      *
-     * @param name The name of the file or content
-     * @param contentType The MIME type or other format descriptor
+     * @param name
+     *            The name of the file or content
+     * @param contentType
+     *            The MIME type or other format descriptor
      * @return APPLICABLE if this reader can process the input, NOT_APPLICABLE otherwise
      */
     @Override
@@ -627,20 +654,20 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     /**
      * Parses the input stream and creates a record with FST signal data.
      *
-     * This implementation reads the FST file header and then processes the blocks to identify
-     * different sections of the FST file. As a minimal implementation, it:
-     * 1. Reads and validates the FST file header
-     * 2. Extracts metadata like timescale, start/end times, etc.
-     * 3. Identifies and logs block types and sizes
+     * This implementation reads the FST file header and then processes the blocks to identify different sections of the FST file. As a minimal
+     * implementation, it: 1. Reads and validates the FST file header 2. Extracts metadata like timescale, start/end times, etc. 3. Identifies and
+     * logs block types and sizes
      *
-     * @param progress Interface for reporting progress and checking for cancellation
-     * @param in The input stream containing the FST data
-     * @throws ParseException If an error occurs during parsing
+     * @param progress
+     *            Interface for reporting progress and checking for cancellation
+     * @param in
+     *            The input stream containing the FST data
+     * @throws ParseException
+     *             If an error occurs during parsing
      */
     @Override
     protected void parse(IProgress progress, InputStream in) throws ParseException {
         BinaryDecoder reader = null;
-        int blocksProcessed = 0;
         try {
             // Set up console logging
             console = new ConfiguredConsoleStream(Ide.DEFAULT_CONSOLE, getLabel(), ConfiguredConsoleStream.logging(getProperties()));
@@ -651,25 +678,29 @@ public class FstReader extends AbstractSingleDomainRecordReader {
             // Create an empty record with nanosecond time base (default for FST files)
             TimeBase base = TimeBase.valueOf(TimeBase.s.ordinal() + timescale);
             initRecord("FST Data", base);
-            // identify groups
-            Map<ICell, List<WaveformVariable<Integer>>> varsByScope = new LinkedHashMap<>();
-            // iterate over
-            for (int handle = 1; handle < waveformVariables.length; handle++) {
-                FstVariable var = waveformVariables[handle];
-                if (var != null && var.scope != null)
-                    varsByScope.computeIfAbsent(var.scope, k -> new ArrayList<>()).add(var);
-            }
-            WaveformVariable.identifyGroups(varsByScope, false);
-            WaveformVariable.createSignals(varsByScope, getRoot(), base, this.includeSignals, this.excludeSignals);
-            WaveformVariable.createWriters(varsByScope, base, this);
-            // Notify that record structure has been created
-            changed(CHANGED_RECORD);
-            // Initialize at position 0
-            open(startTime);
-            changed(CHANGED_CURRENT, 0);
-            parsePhase2();
-            // Close the record
-            close(endTime);
+            if (waveformVariables != null) {
+                // identify groups
+                Map<ICell, List<WaveformVariable<Integer>>> varsByScope = new LinkedHashMap<>();
+                // iterate over
+                for (int handle = 1; handle < waveformVariables.length; handle++) {
+                    FstVariable var = waveformVariables[handle];
+                    if (var != null && var.scope != null)
+                        varsByScope.computeIfAbsent(var.scope, k -> new ArrayList<>()).add(var);
+                }
+                WaveformVariable.identifyGroups(varsByScope, false);
+                WaveformVariable.createSignals(varsByScope, getRoot(), base, this.includeSignals, this.excludeSignals);
+                WaveformVariable.createWriters(varsByScope, base, this);
+
+                // Notify that record structure has been created
+                changed(CHANGED_RECORD);
+                // Initialize at position 0
+                open(startTime);
+                changed(CHANGED_CURRENT, 0);
+                parsePhase2();
+                // Close the record
+                close(endTime);
+            } else
+                throw new ParseException("No variables found");
         } catch (Throwable e) {
             throw new ParseException("Error in FST reader: " + e.getMessage(), e);
         } finally {
@@ -698,6 +729,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                 console.info("Block #", blockCount, ": Type=0x", Integer.toHexString(blockType), " (", blockTypeName, ")");
                 // Check if this is a VCDATA block (for special handling)
                 boolean isVcdataBlock = (blockType == FST_BL_VCDATA || blockType == FST_BL_VCDATA_DYN_ALIAS || blockType == FST_BL_VCDATA_DYN_ALIAS2);
+                boolean isZwrapperBlock = (blockType == FST_BL_ZWRAPPER);
                 // Read section length (common to all block types except some special cases)
                 long sectionLength;
                 byte[] blockData;
@@ -722,14 +754,19 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                         }
                         // Read the payload directly into the array starting at position 9
                         reader.readFully(fullBlock, 9, (int) dataSize);
-                        console.info("  Read VCDATA block: 1 byte type + 8 bytes length + ", dataSize, " bytes payload = ", fullBlock.length, " total bytes");
+                        console.info("  Read VCDATA block: 1 byte type + 8 bytes length + ", dataSize, " bytes payload = ", fullBlock.length,
+                                " total bytes");
                         // Store the complete block for later processing
                         // Time range will be determined in phase 2
                         addDataBlock(fullBlock, 0, 0);
                         console.info("  Stored VCDATA block for phase 2 processing");
                         // Skip to next block
                         continue;
-                    } else {
+                    } else if(isZwrapperBlock) {
+                        // For ZWRAPPER blocks: read entire block including type and length
+                        parseZWrapperBlock(reader, dataSize);
+                        continue;
+                    }else {
                         // For other blocks: read payload only (existing logic)
                         blockData = new byte[(int) dataSize];
                         reader.readFully(blockData);
@@ -742,30 +779,27 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                 BinaryDecoder blockReader = new BinaryDecoder(blockData);
                 // Dispatch to specific block handler with isolated block data
                 try {
-                    switch(blockType) {
-                        case FST_BL_HDR:
-                            parseHeaderBlock(blockReader);
-                            break;
-                        case FST_BL_BLACKOUT:
-                            parseBlackoutBlock(blockReader);
-                            break;
-                        case FST_BL_GEOM:
-                            parseGeometryBlock(blockReader);
-                            break;
-                        case FST_BL_HIER:
-                        case FST_BL_HIER_LZ4:
-                        case FST_BL_HIER_LZ4DUO:
-                            parseHierarchyBlock(blockReader, blockType);
-                            break;
-                        case FST_BL_SKIP:
-                            parseSkipBlock(blockReader);
-                            break;
-                        case FST_BL_ZWRAPPER:
-                            parseZWrapperBlock(blockReader);
-                            break;
-                        default:
-                            console.info("  WARNING: Unknown block type, skipped", blockData.length, "bytes");
-                            break;
+                    switch (blockType) {
+                    case FST_BL_HDR:
+                        parseHeaderBlock(blockReader);
+                        break;
+                    case FST_BL_BLACKOUT:
+                        parseBlackoutBlock(blockReader);
+                        break;
+                    case FST_BL_GEOM:
+                        parseGeometryBlock(blockReader);
+                        break;
+                    case FST_BL_HIER:
+                    case FST_BL_HIER_LZ4:
+                    case FST_BL_HIER_LZ4DUO:
+                        parseHierarchyBlock(blockReader, blockType);
+                        break;
+                    case FST_BL_SKIP:
+                        parseSkipBlock(blockReader);
+                        break;
+                    default:
+                        console.info("  WARNING: Unknown block type, skipped", blockData.length, "bytes");
+                        break;
                     }
                 } finally {
                     try {
@@ -781,8 +815,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     }
 
     /**
-     * Adds a transaction chunk to this stream.
-     * In lazy mode, this could store the chunk for later processing.
+     * Adds a transaction chunk to this stream. In lazy mode, this could store the chunk for later processing.
      */
     public void addDataBlock(byte[] block, long startTime, long endTime) {
         // Initialize the chunks pageable if it doesn't exist
@@ -829,9 +862,12 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     /**
      * Parse the FST header block to extract metadata and initialize waveform variables.
      *
-     * @param reader BinaryDecoder for reading the header block data
-     * @throws ParseException If an error occurs during parsing or if header is parsed twice
-     * @throws EOFException If the end of the file is reached unexpectedly
+     * @param reader
+     *            BinaryDecoder for reading the header block data
+     * @throws ParseException
+     *             If an error occurs during parsing or if header is parsed twice
+     * @throws EOFException
+     *             If the end of the file is reached unexpectedly
      */
     private void parseHeaderBlock(BinaryDecoder reader) throws ParseException, EOFException {
         // Check if header has already been parsed
@@ -893,7 +929,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         console.info("    Time Zero:", timezero);
         console.info("    Simulation Version: '", simVersion, "'");
         console.info("    Date: '", dateString, "'");
-        console.info("  Endianness:",  this.littleEndian ? "Little-endian" : "Big-endian");
+        console.info("  Endianness:", this.littleEndian ? "Little-endian" : "Big-endian");
         // Initialize waveform variables array with maxHandle+1 size (handle IDs are 1-based)
         waveformVariables = new FstVariable[(int) (maxHandle + 1)];
         console.info("  Initialized waveform variables array with size:", maxHandle + 1);
@@ -909,15 +945,15 @@ public class FstReader extends AbstractSingleDomainRecordReader {
      * Get file type name from numeric value
      */
     private String getFileTypeName(int fileType) {
-        switch(fileType) {
-            case FST_FT_VERILOG:
-                return "Verilog";
-            case FST_FT_VHDL:
-                return "VHDL";
-            case FST_FT_VERILOG_VHDL:
-                return "Mixed Verilog/VHDL";
-            default:
-                return "Unknown";
+        switch (fileType) {
+        case FST_FT_VERILOG:
+            return "Verilog";
+        case FST_FT_VHDL:
+            return "VHDL";
+        case FST_FT_VERILOG_VHDL:
+            return "Mixed Verilog/VHDL";
+        default:
+            return "Unknown";
         }
     }
 
@@ -925,12 +961,15 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     // Parse FST value change block
     // ========================================================================================================================
     /**
-     * Parse a value change block, which contains signal value changes over time.
-     * This method handles both standard value change blocks and dynamic aliasing blocks.
+     * Parse a value change block, which contains signal value changes over time. This method handles both standard value change blocks and dynamic
+     * aliasing blocks.
      *
-     * @param reader BinaryDecoder for reading the value change block data
-     * @throws ParseException If an error occurs during parsing
-     * @throws EOFException If the end of the file is reached unexpectedly
+     * @param reader
+     *            BinaryDecoder for reading the value change block data
+     * @throws ParseException
+     *             If an error occurs during parsing
+     * @throws EOFException
+     *             If the end of the file is reached unexpectedly
      */
     private void parseValueChangeBlock(BinaryDecoder reader) throws ParseException, EOFException {
         // Read block type and section length from the beginning of the stored block
@@ -952,15 +991,15 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         if (remainingDataSize > 0) {
             try {
                 // Parse different value change block types
-                switch(blockType) {
-                    case FST_BL_VCDATA_DYN_ALIAS:
-                    case FST_BL_VCDATA_DYN_ALIAS2:
-                        parseValueChangeDynAliasBlock(reader, remainingDataSize, blockType);
-                        break;
-                    case FST_BL_VCDATA:
-                    default:
-                        parseValueChangeDataSections(reader, remainingDataSize);
-                        break;
+                switch (blockType) {
+                case FST_BL_VCDATA_DYN_ALIAS:
+                case FST_BL_VCDATA_DYN_ALIAS2:
+                    parseValueChangeDynAliasBlock(reader, remainingDataSize, blockType);
+                    break;
+                case FST_BL_VCDATA:
+                default:
+                    parseValueChangeDataSections(reader, remainingDataSize);
+                    break;
                 }
             } catch (Exception e) {
                 throw new ParseException("Failed to parse value change data: " + e.getMessage(), e);
@@ -974,11 +1013,12 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     // Parse FST value change FST_BL_VCDATA block
     // ========================================================================================================================
     /**
-     * Parse value change data sections within a value change block.
-     * These sections contain the actual signal value changes organized by time.
+     * Parse value change data sections within a value change block. These sections contain the actual signal value changes organized by time.
      *
-     * @param reader BinaryDecoder for reading the value change data
-     * @param dataSize Size of the remaining data to parse
+     * @param reader
+     *            BinaryDecoder for reading the value change data
+     * @param dataSize
+     *            Size of the remaining data to parse
      */
     private void parseValueChangeDataSections(BinaryDecoder reader, long dataSize) throws ParseException, EOFException {
         console.info("  Parsing value change data sections (", dataSize, "bytes)");
@@ -994,31 +1034,31 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                 int sectionType = reader.readUInt8();
                 bytesProcessed++;
                 console.info("    Section", sectionCount, ": type=0x", Integer.toHexString(sectionType));
-                switch(sectionType) {
-                    case // Frame section
-                    0x00:
-                        bytesProcessed += parseFrameSection(reader);
-                        break;
-                    case // Value change section
-                    0x01:
-                        bytesProcessed += parseValueChangeSection(reader);
-                        break;
-                    case // Chain section
-                    0x02:
-                        bytesProcessed += parseChainSection(reader);
-                        break;
-                    case // Time section
-                    0x03:
-                        bytesProcessed += parseTimeSection(reader);
-                        break;
-                    default:
-                        // Unknown section type - try to skip by reading a length field
-                        console.info("    Unknown section type, attempting to skip");
-                        long sectionLength = reader.readVarint();
-                        bytesProcessed += BinaryDecoder.getVarintSize(sectionLength) + sectionLength;
-                        reader.skipBytes((int) sectionLength);
-                        console.info("    Skipped", sectionLength, "bytes");
-                        break;
+                switch (sectionType) {
+                case // Frame section
+                        0x00:
+                    bytesProcessed += parseFrameSection(reader);
+                    break;
+                case // Value change section
+                        0x01:
+                    bytesProcessed += parseValueChangeSection(reader);
+                    break;
+                case // Chain section
+                        0x02:
+                    bytesProcessed += parseChainSection(reader);
+                    break;
+                case // Time section
+                        0x03:
+                    bytesProcessed += parseTimeSection(reader);
+                    break;
+                default:
+                    // Unknown section type - try to skip by reading a length field
+                    console.info("    Unknown section type, attempting to skip");
+                    long sectionLength = reader.readVarint();
+                    bytesProcessed += BinaryDecoder.getVarintSize(sectionLength) + sectionLength;
+                    reader.skipBytes((int) sectionLength);
+                    console.info("    Skipped", sectionLength, "bytes");
+                    break;
                 }
                 // Safety check to prevent infinite loops
                 long currentPos = reader.getTotalBytesRead();
@@ -1109,15 +1149,16 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     /**
      * Parse VALUE_CHANGE_DYN_ALIAS block data.
      *
-     * This block uses dynamic aliasing for compression and contains four main sections:
-     * 1. Frame section: Initial signal values (compressed with ZLIB)
-     * 2. VC section: Compressed signal changes with per-signal chunks
-     * 3. Chain section: Signal offset mapping table (at end - 24 - tsec_clen - 8)
-     * 4. Time section: Timestamp data (at end - 24)
+     * This block uses dynamic aliasing for compression and contains four main sections: 1. Frame section: Initial signal values (compressed with
+     * ZLIB) 2. VC section: Compressed signal changes with per-signal chunks 3. Chain section: Signal offset mapping table (at end - 24 - tsec_clen -
+     * 8) 4. Time section: Timestamp data (at end - 24)
      *
-     * @param reader BinaryDecoder for reading the block data
-     * @param dataSize Size of the remaining data to parse
-     * @param blockType The specific block type (FST_BL_VCDATA_DYN_ALIAS or FST_BL_VCDATA_DYN_ALIAS2)
+     * @param reader
+     *            BinaryDecoder for reading the block data
+     * @param dataSize
+     *            Size of the remaining data to parse
+     * @param blockType
+     *            The specific block type (FST_BL_VCDATA_DYN_ALIAS or FST_BL_VCDATA_DYN_ALIAS2)
      */
     private void parseValueChangeDynAliasBlock(BinaryDecoder reader, long dataSize, int blockType) throws ParseException, EOFException {
         console.info("  Parsing dynamic alias value change block (", dataSize, "bytes)");
@@ -1131,7 +1172,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
             long frameMaxHandle = reader.readVarint();
             console.info("      Frame section: uclen=", frameUclen, ", clen=", frameClen, ", maxHandle=", frameMaxHandle);
             // Calculate frame header size
-            long frameHeaderSize = BinaryDecoder.getVarintSize(frameUclen) + BinaryDecoder.getVarintSize(frameClen) + BinaryDecoder.getVarintSize(frameMaxHandle);
+            long frameHeaderSize = BinaryDecoder.getVarintSize(frameUclen) + BinaryDecoder.getVarintSize(frameClen)
+                    + BinaryDecoder.getVarintSize(frameMaxHandle);
             // Skip frame data for now - process after layout calculation
             int frameDataPos = reader.getPosition();
             reader.skipBytes((int) frameClen);
@@ -1152,7 +1194,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
             // Safety check: ensure we have enough data
             if (reader.size() < 24)
                 throw new ParseException("Block too small for time header: " + reader.size() + " bytes");
-                console.info("      VC section: maxHandle=", vcMaxHandle, ", packType=", packTypeChar, " (", compressionType, "), headerSize=", vcHeaderSize, ", dataStartPos=", vcDataStartPos);
+            console.info("      VC section: maxHandle=", vcMaxHandle, ", packType=", packTypeChar, " (", compressionType, "), headerSize=",
+                    vcHeaderSize, ", dataStartPos=", vcDataStartPos);
 
             // Read time section header from end (last 24 bytes)
             int timeHeaderPos = reader.size() - 24;
@@ -1172,7 +1215,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
 
             long vcDataSize = dataSize - frameHeaderSize - frameClen - vcHeaderSize - 8 - chainClen - 24 - tsecClen;
             console.info("      VC section: vcDataSize=", vcDataSize);
-            
+
             // ========================================================================================================================
             // Process frame data
             // ========================================================================================================================
@@ -1181,7 +1224,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
             if (frameClen > 0) {
                 byte[] compressedFrameData = new byte[(int) frameClen];
                 reader.readFully(compressedFrameData);
-                byte[] frameData = frameClen != frameUclen ? decompressData(compressedFrameData, COMPRESSION_ZLIB, frameUclen):compressedFrameData;
+                byte[] frameData = frameClen != frameUclen ? decompressData(compressedFrameData, COMPRESSION_ZLIB, frameUclen) : compressedFrameData;
                 if (frameData != null) {
                     // Parse frame initial values inline (refactored from parseFrameInitialValues)
                     console.info("      Parsing initial values for", frameMaxHandle, "signals starting from handle", currentFrameHandle + 1);
@@ -1203,7 +1246,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                                 continue;
                             }
                             // size in bytes/chars
-                            int size = fstVar.dataType == ISample.DATA_TYPE_FLOAT ? 8:fstVar.scale;
+                            int size = fstVar.dataType == ISample.DATA_TYPE_FLOAT ? 8 : fstVar.scale;
                             if (size <= 0) {
                                 continue;
                             }
@@ -1220,7 +1263,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                         console.info("      Frame parsing completed:", signalsProcessed, "signals processed");
                         console.info("      Total expected size:", totalExpectedSize, "bytes");
                         console.info("      Actual frame data size:", frameData.length, "bytes");
-                        if (totalExpectedSize != frameData.length) 
+                        if (totalExpectedSize != frameData.length)
                             throw new ParseException("Frame parsing size ");
                     } catch (Exception e) {
                         throw new ParseException("Failed to parse frame initial values: " + e.getMessage(), e);
@@ -1229,7 +1272,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                     throw new ParseException("Failed to decompress frame data");
                 }
             }
-            
+
             // ========================================================================================================================
             // Parse time section to get absolute timestamps
             // ========================================================================================================================
@@ -1301,7 +1344,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                         if ((val & 1) != 0) {
                             // LSB set: signed delta
                             // Decode zigzag
-                            long shval = val>>1;
+                            long shval = val >> 1;
                             if (shval > 0) {
                                 // Positive: offset delta - store directly in FstVariable
                                 pval += shval;
@@ -1376,7 +1419,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                 }
                 // Set final entry - store end of VC data
                 if (pidx < vars.length && vars[pidx] != null && pidx < idx) {
-                    vars[pidx].chunkLength = (int) (vcDataSize - vars[pidx].chunkOffset+2 /*????*/);
+                    vars[pidx].chunkLength = (int) (vcDataSize - vars[pidx].chunkOffset + 2 /* ???? */);
                 }
                 // Optimized logging - only log summary to avoid performance impact
                 console.info("      Chain parsing completed:", idx, "entries processed");
@@ -1404,7 +1447,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                     if (var != null && var.chunkLength < 0) {
                         // This is an alias - add to target's aliases list
                         int targetHandle = Math.abs(var.chunkLength);
-                        if (targetHandle < vars.length && vars[targetHandle] != null && vars[targetHandle].chunkOffset >= 0 && vars[targetHandle].chunkLength > 0) {
+                        if (targetHandle < vars.length && vars[targetHandle] != null && vars[targetHandle].chunkOffset >= 0
+                                && vars[targetHandle].chunkLength > 0) {
                             FstVariable targetVar = vars[targetHandle];
                             if (targetVar.aliases == null) {
                                 targetVar.aliases = new ArrayList<>();
@@ -1425,19 +1469,19 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                 reader.setPosition(vcDataStartPos);
                 // Determine compression type based on pack type
                 int signalCompressionType;
-                switch(packTypeChar) {
-                    case 'Z':
-                        signalCompressionType = COMPRESSION_ZLIB;
-                        break;
-                    case '4':
-                        signalCompressionType = COMPRESSION_LZ4;
-                        break;
-                    case 'F':
-                        signalCompressionType = COMPRESSION_FASTLZ;
-                        break;
-                    default:
-                        signalCompressionType = COMPRESSION_ZLIB;
-                        break;
+                switch (packTypeChar) {
+                case 'Z':
+                    signalCompressionType = COMPRESSION_ZLIB;
+                    break;
+                case '4':
+                    signalCompressionType = COMPRESSION_LZ4;
+                    break;
+                case 'F':
+                    signalCompressionType = COMPRESSION_FASTLZ;
+                    break;
+                default:
+                    signalCompressionType = COMPRESSION_ZLIB;
+                    break;
                 }
                 if (timestamps != null && timestamps.length > 0) {
                     console.info("      Processing signals with data (offset > 0 && length > 0)");
@@ -1451,7 +1495,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                             console.info("        Processing signal[", varIdx, "]: offset=", var.chunkOffset, ", length=", var.chunkLength);
                             try {
                                 // Seek to this signal's data chunk
-                                long signalDataPos = vcDataStartPos + var.chunkOffset - 1 /*???*/;
+                                long signalDataPos = vcDataStartPos + var.chunkOffset - 1 /* ??? */;
                                 reader.setPosition(signalDataPos);
                                 // Read uncompressed length as varint (first part of the chunk)
                                 long uncompressedLength = reader.readVarint();
@@ -1468,7 +1512,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                                     // Compressed data - read and decompress
                                     byte[] compressedData = new byte[compressedDataSize];
                                     reader.readFully(compressedData);
-                                    console.info("          Read", compressedData.length, "bytes of compressed data, decompressing to", uncompressedLength);
+                                    console.info("          Read", compressedData.length, "bytes of compressed data, decompressing to",
+                                            uncompressedLength);
                                     decompressedChunk = decompressData(compressedData, signalCompressionType, uncompressedLength);
                                     if (decompressedChunk == null)
                                         throw new ParseException("Failed to decompress signal data");
@@ -1487,7 +1532,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                                             // 1-bit signal with 2-state or 4-state values
                                             long shcnt = 2L << (vli & 1);
                                             timeIndex += vli >> shcnt;
-                                            var.writeChange1Bit(timestamps[timeIndex], (byte) ((vli & 1) == 0 ? vli&0x03:vli&0x0f));
+                                            var.writeChange1Bit(timestamps[timeIndex], (byte) ((vli & 1) == 0 ? vli & 0x03 : vli & 0x0f));
                                             valueChangesInThisSignal++;
                                         } else if (var.scale == 0) {
                                             // Case 2: Variable-length signals (FST_VT_GEN_STRING, etc.)
@@ -1500,7 +1545,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                                             // Skip past the value bytes
                                             chunkReader.skipBytes((int) valueLength);
                                             valueChangesInThisSignal++;
-                                        } else if ( var.dataType == ISample.DATA_TYPE_LOGIC && var.scale > 1) {
+                                        } else if (var.dataType == ISample.DATA_TYPE_LOGIC && var.scale > 1) {
                                             timeIndex += vli >> 1;
                                             // Read value length
                                             long valueLength = var.scale;
@@ -1516,7 +1561,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                                             // Skip past the value bytes
                                             chunkReader.skipBytes((int) valueLength);
                                             valueChangesInThisSignal++;
-                                        }else if ( var.dataType == ISample.DATA_TYPE_FLOAT) {
+                                        } else if (var.dataType == ISample.DATA_TYPE_FLOAT) {
                                             int currentPos = chunkReader.getPosition();
                                             timeIndex += vli >> 1;
                                             var.writeChange(timestamps[timeIndex], false, decompressedChunk, currentPos, 8);
@@ -1543,12 +1588,12 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                     console.info("      VC data parsing completed:");
                     console.info("        Signals with data processed:", signalsProcessed);
                     console.info("        Total value changes processed:", changesProcessed);
-                
+
                     // Assert frame initialization
-                    if (frameClen > 0) 
+                    if (frameClen > 0)
                         for (int varIdx = 0; varIdx <= maxHandle && varIdx < vars.length; varIdx++) {
                             FstVariable var = vars[varIdx];
-                            if (var != null) 
+                            if (var != null)
                                 var.assertInitialValue();
                         }
                 } else {
@@ -1561,15 +1606,15 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     }
 
     private String getCompressionTypeName(char packType) {
-        switch(packType) {
-            case 'Z':
-                return "Zlib";
-            case '4':
-                return "LZ4";
-            case 'F':
-                return "FastLZ";
-            default:
-                return "Unknown(0x" + Integer.toHexString(packType) + ")";
+        switch (packType) {
+        case 'Z':
+            return "Zlib";
+        case '4':
+            return "LZ4";
+        case 'F':
+            return "FastLZ";
+        default:
+            return "Unknown(0x" + Integer.toHexString(packType) + ")";
         }
     }
 
@@ -1579,7 +1624,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
 
     private int calculateHeaderSize(long frameUclen, long frameClen, long frameMaxHandle, long vcMaxHandle) {
         return // +1 for pack type
-        BinaryDecoder.getVarintSize(frameUclen) + BinaryDecoder.getVarintSize(frameClen) + BinaryDecoder.getVarintSize(frameMaxHandle) + BinaryDecoder.getVarintSize(vcMaxHandle) + 1;
+        BinaryDecoder.getVarintSize(frameUclen) + BinaryDecoder.getVarintSize(frameClen) + BinaryDecoder.getVarintSize(frameMaxHandle)
+                + BinaryDecoder.getVarintSize(vcMaxHandle) + 1;
     }
 
     private long estimateVcDataSize(long totalSize, int headerSize, long frameClen) {
@@ -1704,13 +1750,15 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     }
 
     /**
-     * Parse decompressed geometry data.
-     * The geometry block contains signal handle assignments and signal metadata.
-     * This is where signals from the hierarchy get their actual handle numbers assigned.
+     * Parse decompressed geometry data. The geometry block contains signal handle assignments and signal metadata. This is where signals from the
+     * hierarchy get their actual handle numbers assigned.
      *
-     * @param reader BinaryDecoder for the decompressed geometry data
-     * @param dataLength Length of the decompressed data
-     * @param maxHandle Maximum handle ID from the geometry block header
+     * @param reader
+     *            BinaryDecoder for the decompressed geometry data
+     * @param dataLength
+     *            Length of the decompressed data
+     * @param maxHandle
+     *            Maximum handle ID from the geometry block header
      */
     private void parseGeometryData(BinaryDecoder reader, long dataLength, long maxHandle) throws ParseException {
         console.info("  Parsing geometry data (", dataLength, "bytes, max handle:", maxHandle, ")");
@@ -1754,7 +1802,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                     // Zero value indicates a real (floating-point) signal
                     realSignals++;
                     fstVar.dataType = ISample.DATA_TYPE_FLOAT;
-                    //fstVar.scale = 8;
+                    // fstVar.scale = 8;
                     console.info("    Handle", handle, ": Real signal, 64-bit float");
                 }
                 // Report progress periodically
@@ -1796,19 +1844,19 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         double compressionRatio = 100.0 * ((sectionLength - 8) - 8) / uncompressedLength;
         console.info("  Compression ratio:", Math.round(compressionRatio * 100.0) / 100.0, "%");
         String compressionType;
-        switch(blockType) {
-            case FST_BL_HIER:
-                compressionType = "Gzip";
-                break;
-            case FST_BL_HIER_LZ4:
-                compressionType = "LZ4";
-                break;
-            case FST_BL_HIER_LZ4DUO:
-                compressionType = "LZ4 Dual-stage";
-                break;
-            default:
-                compressionType = "Unknown";
-                break;
+        switch (blockType) {
+        case FST_BL_HIER:
+            compressionType = "Gzip";
+            break;
+        case FST_BL_HIER_LZ4:
+            compressionType = "LZ4";
+            break;
+        case FST_BL_HIER_LZ4DUO:
+            compressionType = "LZ4 Dual-stage";
+            break;
+        default:
+            compressionType = "Unknown";
+            break;
         }
         console.info("  Compression type:", compressionType);
         // Calculate compressed data size
@@ -1820,19 +1868,19 @@ public class FstReader extends AbstractSingleDomainRecordReader {
             reader.readFully(compressedData);
             // Map block type to compression type
             int actualCompressionType;
-            switch(blockType) {
-                case FST_BL_HIER:
-                    actualCompressionType = COMPRESSION_GZIP;
-                    break;
-                case FST_BL_HIER_LZ4:
-                    actualCompressionType = COMPRESSION_LZ4;
-                    break;
-                case FST_BL_HIER_LZ4DUO:
-                    actualCompressionType = COMPRESSION_LZ4DUO;
-                    break;
-                default:
-                    actualCompressionType = COMPRESSION_GZIP;
-                    break;
+            switch (blockType) {
+            case FST_BL_HIER:
+                actualCompressionType = COMPRESSION_GZIP;
+                break;
+            case FST_BL_HIER_LZ4:
+                actualCompressionType = COMPRESSION_LZ4;
+                break;
+            case FST_BL_HIER_LZ4DUO:
+                actualCompressionType = COMPRESSION_LZ4DUO;
+                break;
+            default:
+                actualCompressionType = COMPRESSION_GZIP;
+                break;
             }
             // Decompress the data with the mapped compression type
             byte[] decompressedData = decompressData(compressedData, actualCompressionType, uncompressedLength);
@@ -1861,39 +1909,39 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                 entryCount++;
                 // FST hierarchy uses different tag values than the FST_HT_* constants
                 // The actual format uses FST_ST_* and FST_VT_* values as tags
-                switch(tag) {
-                    case // FST_ST_VCD_SCOPE
-                    254:
-                        scope = parseHierarchyScope(reader, scope, tag);
-                        break;
-                    case // FST_ST_VCD_UPSCOPE
-                    255:
-                        if (scope != null) {
-                            scope = scope.getCellContainer();
+                switch (tag) {
+                case // FST_ST_VCD_SCOPE
+                        254:
+                    scope = parseHierarchyScope(reader, scope, tag);
+                    break;
+                case // FST_ST_VCD_UPSCOPE
+                        255:
+                    if (scope != null) {
+                        scope = scope.getCellContainer();
+                    }
+                    console.info("End scope");
+                    break;
+                case // FST_ST_GEN_ATTRBEGIN
+                        252:
+                    parseHierarchyAttributeBegin(reader, tag);
+                    break;
+                case // FST_ST_GEN_ATTREND
+                        253:
+                    console.info("End attribute");
+                    break;
+                default:
+                    // Check if this is a variable type (FST_VT_* values 0-29)
+                    if (tag >= 0 && tag <= 29) {
+                        parseHierarchyVariable(reader, scope, tag);
+                    } else {
+                        console.info("    UNKNOWN tag:", tag, "(0x", Integer.toHexString(tag), ")");
+                        // Try to read and skip the next byte to attempt recovery
+                        if (reader.hasMoreData()) {
+                            int nextByte = reader.readUInt8();
+                            console.info("      Next byte:", nextByte, "(0x", Integer.toHexString(nextByte), ")");
                         }
-                        console.info("End scope");
-                        break;
-                    case // FST_ST_GEN_ATTRBEGIN
-                    252:
-                        parseHierarchyAttributeBegin(reader, tag);
-                        break;
-                    case // FST_ST_GEN_ATTREND
-                    253:
-                        console.info("End attribute");
-                        break;
-                    default:
-                        // Check if this is a variable type (FST_VT_* values 0-29)
-                        if (tag >= 0 && tag <= 29) {
-                            parseHierarchyVariable(reader, scope, tag);
-                        } else {
-                            console.info("    UNKNOWN tag:", tag, "(0x", Integer.toHexString(tag), ")");
-                            // Try to read and skip the next byte to attempt recovery
-                            if (reader.hasMoreData()) {
-                                int nextByte = reader.readUInt8();
-                                console.info("      Next byte:", nextByte, "(0x", Integer.toHexString(nextByte), ")");
-                            }
-                        }
-                        break;
+                    }
+                    break;
                 }
             }
             console.info("  Hierarchy parsing completed:", entryCount, "entries processed");
@@ -1925,7 +1973,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         long varHandle = reader.readVarint();
         String varTypeName = getVariableTypeName(varType);
         String varDirectionName = getVariableDirectionName(varDirection);
-        console.info("  Var: type=", varTypeName, varType, " direction=", varDirectionName, varDirection, "length=", varLength, " bits, name='", varName, "', handle=", varHandle);
+        console.info("  Var: type=", varTypeName, varType, " direction=", varDirectionName, varDirection, "length=", varLength, " bits, name='",
+                varName, "', handle=", varHandle);
         // Determine the actual handle to use
         long actualHandle;
         if (varHandle == 0) {
@@ -1961,10 +2010,10 @@ public class FstReader extends AbstractSingleDomainRecordReader {
             int vec1Idx = varName.indexOf(']', vec0Idx);
             if (vec1Idx > 0) {
                 if (dimIdx > 0) {
-                    fstVar.idx0  = Utils.parseInt(varName.substring(vec0Idx + 1, dimIdx).trim(), -1); // High index
-                    fstVar.idx1  = Utils.parseInt(varName.substring(dimIdx + 1, vec1Idx).trim(), -1); // Low index
+                    fstVar.idx0 = Utils.parseInt(varName.substring(vec0Idx + 1, dimIdx).trim(), -1); // High index
+                    fstVar.idx1 = Utils.parseInt(varName.substring(dimIdx + 1, vec1Idx).trim(), -1); // Low index
                 } else
-                    fstVar.idx0 =  Utils.parseInt(varName.substring(vec0Idx + 1, vec1Idx).trim(), -1); // High index
+                    fstVar.idx0 = Utils.parseInt(varName.substring(vec0Idx + 1, vec1Idx).trim(), -1); // High index
             }
             // Ensure idx0 >= idx1 for bit ranges
             if (fstVar.idx1 > fstVar.idx0) {
@@ -2009,33 +2058,33 @@ public class FstReader extends AbstractSingleDomainRecordReader {
      * Get scope type name from numeric value
      */
     private String getScopeTypeName(int scopeType) {
-        switch(scopeType) {
-            case FST_ST_VCD_MODULE:
-                return "module";
-            case FST_ST_VCD_TASK:
-                return "task";
-            case FST_ST_VCD_FUNCTION:
-                return "function";
-            case FST_ST_VCD_BEGIN:
-                return "begin";
-            case FST_ST_VCD_FORK:
-                return "fork";
-            case FST_ST_VCD_GENERATE:
-                return "generate";
-            case FST_ST_VCD_STRUCT:
-                return "struct";
-            case FST_ST_VCD_UNION:
-                return "union";
-            case FST_ST_VCD_CLASS:
-                return "class";
-            case FST_ST_VCD_INTERFACE:
-                return "interface";
-            case FST_ST_VCD_PACKAGE:
-                return "package";
-            case FST_ST_VCD_PROGRAM:
-                return "program";
-            default:
-                return "unknown";
+        switch (scopeType) {
+        case FST_ST_VCD_MODULE:
+            return "module";
+        case FST_ST_VCD_TASK:
+            return "task";
+        case FST_ST_VCD_FUNCTION:
+            return "function";
+        case FST_ST_VCD_BEGIN:
+            return "begin";
+        case FST_ST_VCD_FORK:
+            return "fork";
+        case FST_ST_VCD_GENERATE:
+            return "generate";
+        case FST_ST_VCD_STRUCT:
+            return "struct";
+        case FST_ST_VCD_UNION:
+            return "union";
+        case FST_ST_VCD_CLASS:
+            return "class";
+        case FST_ST_VCD_INTERFACE:
+            return "interface";
+        case FST_ST_VCD_PACKAGE:
+            return "package";
+        case FST_ST_VCD_PROGRAM:
+            return "program";
+        default:
+            return "unknown";
         }
     }
 
@@ -2043,99 +2092,99 @@ public class FstReader extends AbstractSingleDomainRecordReader {
      * Get variable type name from numeric value (FST_VT_* constants)
      */
     private String getVariableTypeName(int varType) {
-        switch(varType) {
-            // FST_VT_VCD_EVENT
-            case 0:
-                return "event";
-            // FST_VT_VCD_INTEGER
-            case 1:
-                return "integer";
-            // FST_VT_VCD_PARAMETER
-            case 2:
-                return "parameter";
-            // FST_VT_VCD_REAL
-            case 3:
-                return "real";
-            // FST_VT_VCD_REAL_PARAMETER
-            case 4:
-                return "real_parameter";
-            // FST_VT_VCD_REG
-            case 5:
-                return "reg";
-            // FST_VT_VCD_SUPPLY0
-            case 6:
-                return "supply0";
-            // FST_VT_VCD_SUPPLY1
-            case 7:
-                return "supply1";
-            // FST_VT_VCD_TIME
-            case 8:
-                return "time";
-            // FST_VT_VCD_TRI
-            case 9:
-                return "tri";
-            // FST_VT_VCD_TRIAND
-            case 10:
-                return "triand";
-            // FST_VT_VCD_TRIOR
-            case 11:
-                return "trior";
-            // FST_VT_VCD_TRIREG
-            case 12:
-                return "trireg";
-            // FST_VT_VCD_TRI0
-            case 13:
-                return "tri0";
-            // FST_VT_VCD_TRI1
-            case 14:
-                return "tri1";
-            // FST_VT_VCD_WAND
-            case 15:
-                return "wand";
-            // FST_VT_VCD_WIRE
-            case 16:
-                return "wire";
-            // FST_VT_VCD_WOR
-            case 17:
-                return "wor";
-            // FST_VT_VCD_PORT
-            case 18:
-                return "port";
-            // FST_VT_VCD_SPARRAY
-            case 19:
-                return "sparray";
-            // FST_VT_VCD_REALTIME
-            case 20:
-                return "realtime";
-            // FST_VT_GEN_STRING
-            case 21:
-                return "string";
-            // FST_VT_SV_BIT
-            case 22:
-                return "sv_bit";
-            // FST_VT_SV_LOGIC
-            case 23:
-                return "sv_logic";
-            // FST_VT_SV_INT
-            case 24:
-                return "sv_int";
-            // FST_VT_SV_SHORTINT
-            case 25:
-                return "sv_shortint";
-            // FST_VT_SV_LONGINT
-            case 26:
-                return "sv_longint";
-            // FST_VT_SV_BYTE
-            case 27:
-                return "sv_byte";
-            // FST_VT_SV_ENUM
-            case 28:
-                return "sv_enum";
-            // FST_VT_SV_SHORTREAL
-            case 29:
-                return "sv_shortreal";
-            default:
-                return "unknown(" + varType + ")";
+        switch (varType) {
+        // FST_VT_VCD_EVENT
+        case 0:
+            return "event";
+        // FST_VT_VCD_INTEGER
+        case 1:
+            return "integer";
+        // FST_VT_VCD_PARAMETER
+        case 2:
+            return "parameter";
+        // FST_VT_VCD_REAL
+        case 3:
+            return "real";
+        // FST_VT_VCD_REAL_PARAMETER
+        case 4:
+            return "real_parameter";
+        // FST_VT_VCD_REG
+        case 5:
+            return "reg";
+        // FST_VT_VCD_SUPPLY0
+        case 6:
+            return "supply0";
+        // FST_VT_VCD_SUPPLY1
+        case 7:
+            return "supply1";
+        // FST_VT_VCD_TIME
+        case 8:
+            return "time";
+        // FST_VT_VCD_TRI
+        case 9:
+            return "tri";
+        // FST_VT_VCD_TRIAND
+        case 10:
+            return "triand";
+        // FST_VT_VCD_TRIOR
+        case 11:
+            return "trior";
+        // FST_VT_VCD_TRIREG
+        case 12:
+            return "trireg";
+        // FST_VT_VCD_TRI0
+        case 13:
+            return "tri0";
+        // FST_VT_VCD_TRI1
+        case 14:
+            return "tri1";
+        // FST_VT_VCD_WAND
+        case 15:
+            return "wand";
+        // FST_VT_VCD_WIRE
+        case 16:
+            return "wire";
+        // FST_VT_VCD_WOR
+        case 17:
+            return "wor";
+        // FST_VT_VCD_PORT
+        case 18:
+            return "port";
+        // FST_VT_VCD_SPARRAY
+        case 19:
+            return "sparray";
+        // FST_VT_VCD_REALTIME
+        case 20:
+            return "realtime";
+        // FST_VT_GEN_STRING
+        case 21:
+            return "string";
+        // FST_VT_SV_BIT
+        case 22:
+            return "sv_bit";
+        // FST_VT_SV_LOGIC
+        case 23:
+            return "sv_logic";
+        // FST_VT_SV_INT
+        case 24:
+            return "sv_int";
+        // FST_VT_SV_SHORTINT
+        case 25:
+            return "sv_shortint";
+        // FST_VT_SV_LONGINT
+        case 26:
+            return "sv_longint";
+        // FST_VT_SV_BYTE
+        case 27:
+            return "sv_byte";
+        // FST_VT_SV_ENUM
+        case 28:
+            return "sv_enum";
+        // FST_VT_SV_SHORTREAL
+        case 29:
+            return "sv_shortreal";
+        default:
+            return "unknown(" + varType + ")";
         }
     }
 
@@ -2143,27 +2192,27 @@ public class FstReader extends AbstractSingleDomainRecordReader {
      * Get variable direction name from numeric value (FST_VD_* constants)
      */
     private String getVariableDirectionName(int varDirection) {
-        switch(varDirection) {
-            // FST_VD_IMPLICIT
-            case 0:
-                return "implicit";
-            // FST_VD_INPUT
-            case 1:
-                return "input";
-            // FST_VD_OUTPUT
-            case 2:
-                return "output";
-            // FST_VD_INOUT
-            case 3:
-                return "inout";
-            // FST_VD_BUFFER
-            case 4:
-                return "buffer";
-            // FST_VD_LINKAGE
-            case 5:
-                return "linkage";
-            default:
-                return "unknown(" + varDirection + ")";
+        switch (varDirection) {
+        // FST_VD_IMPLICIT
+        case 0:
+            return "implicit";
+        // FST_VD_INPUT
+        case 1:
+            return "input";
+        // FST_VD_OUTPUT
+        case 2:
+            return "output";
+        // FST_VD_INOUT
+        case 3:
+            return "inout";
+        // FST_VD_BUFFER
+        case 4:
+            return "buffer";
+        // FST_VD_LINKAGE
+        case 5:
+            return "linkage";
+        default:
+            return "unknown(" + varDirection + ")";
         }
     }
 
@@ -2187,18 +2236,82 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     // ========================================================================================================================
     // Parse FST ZWrapper block
     // ========================================================================================================================
-    private void parseZWrapperBlock(BinaryDecoder reader) throws ParseException, EOFException {
+
+    private static class BinaryDecoderInputStream extends InputStream {
+        private final BinaryDecoder decoder;
+        private final long size;
+        private long bytesRead = 0;
+
+        /**
+         * Constructor for BinaryDecoderInputStream.
+         *
+         * @param decoder The BinaryDecoder to read from
+         * @param size    The maximum number of bytes to read
+         */
+        public BinaryDecoderInputStream(BinaryDecoder decoder, long size) {
+            this.decoder = decoder;
+            this.size = size;
+        }
+
+        @Override
+        public int read() throws IOException {
+            if (bytesRead >= size) {
+                return -1;
+            }
+            try {
+                int b = decoder.readUInt8();
+                bytesRead++;
+                return b;
+            } catch (EOFException e) {
+                return -1;
+            } catch (ParseException e) {
+                throw new IOException(e);
+            }
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            if (bytesRead >= size) {
+                return -1;
+            }
+            long remaining = size - bytesRead;
+            int toRead = (int) Math.min(len, remaining);
+            if (toRead == 0) {
+                return -1;
+            }
+            try {
+                decoder.readFully(b, off, toRead);
+                bytesRead += toRead;
+                return toRead;
+            } catch (EOFException e) {
+                return -1;
+            } catch (ParseException e) {
+                throw new IOException(e);
+            }
+        }
+    }
+    private void parseZWrapperBlock(BinaryDecoder reader,long dataSize) throws ParseException, EOFException {
         console.info("--- ZWRAPPER BLOCK ---");
-        console.info("  WARNING: ZWrapper blocks (gzip-compressed entire file) are not fully supported");
-        // +8 for section length field itself
-        long sectionLength = reader.size() + 8;
-        console.info("  Section length:", sectionLength, "bytes");
-        // Skip wrapper data
-        // -8 for section length already excluded
-        long dataSize = sectionLength - 8;
+        reader.readUInt64(); // read uncompressed length - ignoring as we use a stream
+        dataSize-=8;
         if (dataSize > 0) {
-            reader.skipBytes((int) dataSize);
-            console.info("  Skipped", dataSize, "bytes of wrapper data");
+            try {
+
+                BinaryDecoderInputStream bis = new BinaryDecoderInputStream(reader, dataSize);
+                GZIPInputStream gzis = new GZIPInputStream(bis);
+                DataInputStream dis = new DataInputStream(gzis);
+                // Create new BinaryDecoder for the decompressed data
+                BinaryDecoder wrappedReader = new BinaryDecoder(dis);
+                console.info("  Decompressed zwrapper data, parsing wrapped content");
+                // Parse the wrapped content using parsePhase1
+                parsePhase1(wrappedReader);
+                // Close the wrapped reader
+                wrappedReader.close();
+            } catch (Exception e) {
+                throw new ParseException("Failed to parse ZWrapper block: " + e.getMessage(), e);
+            }
+        } else {
+            console.info("  No wrapper data to process");
         }
     }
 
@@ -2206,17 +2319,17 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     // Compression Support Methods
     // ========================================================================================================================
     /**
-     * Unified decompression method that supports all FST compression formats.
-     * Handles decompression for various data types in FST files including:
-     * - Zlib (Deflate) for frame and geometry data
-     * - Gzip for hierarchy data
-     * - LZ4 for hierarchy data
-     * - LZ4DUO (dual-stage LZ4) for hierarchy data
+     * Unified decompression method that supports all FST compression formats. Handles decompression for various data types in FST files including: -
+     * Zlib (Deflate) for frame and geometry data - Gzip for hierarchy data - LZ4 for hierarchy data - LZ4DUO (dual-stage LZ4) for hierarchy data
      *
-     * @param compressedData The compressed data bytes
-     * @param compressionType The compression type (use COMPRESSION_* constants)
-     * @param uncompressedSize Expected size after decompression
-     * @param logPrefix Optional prefix for log messages (for better readability in different contexts)
+     * @param compressedData
+     *            The compressed data bytes
+     * @param compressionType
+     *            The compression type (use COMPRESSION_* constants)
+     * @param uncompressedSize
+     *            Expected size after decompression
+     * @param logPrefix
+     *            Optional prefix for log messages (for better readability in different contexts)
      * @return Decompressed data or null if decompression fails
      */
     private byte[] decompressData(byte[] compressedData, int compressionType, long uncompressedSize) throws ParseException {
@@ -2225,85 +2338,84 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         }
         byte[] decompressed = new byte[(int) uncompressedSize];
         try {
-            switch(compressionType) {
-                case COMPRESSION_NONE:
-                    if (compressedData.length != uncompressedSize) {
-                        throw new ParseException("Uncompressed data size mismatch: expected " + uncompressedSize + " got " + compressedData.length);
-                    }
-                    System.arraycopy(compressedData, 0, decompressed, 0, compressedData.length);
-                    break;
-                case COMPRESSION_ZLIB:
-                    Inflater inflater = new Inflater();
-                    inflater.setInput(compressedData);
-                    int resultLength = inflater.inflate(decompressed);
-                    if (inflater.needsInput() && resultLength < uncompressedSize) {
-                        inflater.end();
-                        throw new ParseException("Inflater needs more input but no more data available");
-                    }
+            switch (compressionType) {
+            case COMPRESSION_NONE:
+                if (compressedData.length != uncompressedSize) {
+                    throw new ParseException("Uncompressed data size mismatch: expected " + uncompressedSize + " got " + compressedData.length);
+                }
+                System.arraycopy(compressedData, 0, decompressed, 0, compressedData.length);
+                break;
+            case COMPRESSION_ZLIB:
+                Inflater inflater = new Inflater();
+                inflater.setInput(compressedData);
+                int resultLength = inflater.inflate(decompressed);
+                if (inflater.needsInput() && resultLength < uncompressedSize) {
                     inflater.end();
-                    if (resultLength != uncompressedSize) {
-                        if (resultLength > 0 && resultLength < uncompressedSize) {
-                            byte[] partialResult = new byte[resultLength];
-                            System.arraycopy(decompressed, 0, partialResult, 0, resultLength);
-                            return partialResult;
-                        }
-                        throw new ParseException("Decompression size mismatch. Expected: " + uncompressedSize + " got: " + resultLength);
+                    throw new ParseException("Inflater needs more input but no more data available");
+                }
+                inflater.end();
+                if (resultLength != uncompressedSize) {
+                    if (resultLength > 0 && resultLength < uncompressedSize) {
+                        byte[] partialResult = new byte[resultLength];
+                        System.arraycopy(decompressed, 0, partialResult, 0, resultLength);
+                        return partialResult;
                     }
-                    break;
-                case COMPRESSION_GZIP:
-                    try (ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-                         GZIPInputStream gzis = new GZIPInputStream(bis)) {
-                        int totalRead = 0;
-                        int bytesRead;
-                        while (totalRead < decompressed.length && (bytesRead = gzis.read(decompressed, totalRead, decompressed.length - totalRead)) > 0) {
-                            totalRead += bytesRead;
-                        }
-                        if (totalRead != uncompressedSize) {
-                            throw new ParseException("Gzip size mismatch: expected " + uncompressedSize + " got " + totalRead);
-                        }
+                    throw new ParseException("Decompression size mismatch. Expected: " + uncompressedSize + " got: " + resultLength);
+                }
+                break;
+            case COMPRESSION_GZIP:
+                try (ByteArrayInputStream bis = new ByteArrayInputStream(compressedData); GZIPInputStream gzis = new GZIPInputStream(bis)) {
+                    int totalRead = 0;
+                    int bytesRead;
+                    while (totalRead < decompressed.length && (bytesRead = gzis.read(decompressed, totalRead, decompressed.length - totalRead)) > 0) {
+                        totalRead += bytesRead;
                     }
-                    break;
-                case COMPRESSION_LZ4:
-                    try {
-                        IndexedByteArray src = new IndexedByteArray(compressedData, 0);
-                        IndexedByteArray dst = new IndexedByteArray(decompressed, 0);
-                        LZ4Codec codec = new LZ4Codec();
-                        if (!codec.inverse(src, dst)) {
-                            throw new ParseException("LZ4 decompression failed");
-                        }
-                    } catch (Exception e) {
-                        throw new ParseException("LZ4 decompression error: " + e.getMessage(), e);
+                    if (totalRead != uncompressedSize) {
+                        throw new ParseException("Gzip size mismatch: expected " + uncompressedSize + " got " + totalRead);
                     }
-                    break;
-                case COMPRESSION_LZ4DUO:
-                    try {
-                        int intermediateSize = compressedData.length * 4;
-                        byte[] intermediate = new byte[intermediateSize];
-                        IndexedByteArray src1 = new IndexedByteArray(compressedData, 0);
-                        IndexedByteArray dst1 = new IndexedByteArray(intermediate, 0);
-                        LZ4Codec codec1 = new LZ4Codec();
-                        if (!codec1.inverse(src1, dst1)) {
-                            throw new ParseException("LZ4DUO first stage decompression failed");
-                        }
-                        IndexedByteArray src2 = new IndexedByteArray(intermediate, 0);
-                        IndexedByteArray dst2 = new IndexedByteArray(decompressed, 0);
-                        LZ4Codec codec2 = new LZ4Codec();
-                        if (!codec2.inverse(src2, dst2)) {
-                            throw new ParseException("LZ4DUO second stage decompression failed");
-                        }
-                    } catch (Exception e) {
-                        throw new ParseException("LZ4DUO decompression error: " + e.getMessage(), e);
+                }
+                break;
+            case COMPRESSION_LZ4:
+                try {
+                    IndexedByteArray src = new IndexedByteArray(compressedData, 0);
+                    IndexedByteArray dst = new IndexedByteArray(decompressed, 0);
+                    LZ4Codec codec = new LZ4Codec();
+                    if (!codec.inverse(src, dst)) {
+                        throw new ParseException("LZ4 decompression failed");
                     }
-                    break;
-                case COMPRESSION_FASTLZ:
-                    try {
-                        FastLZ.decompress(compressedData, decompressed);
-                    } catch (Exception e) {
-                        throw new ParseException("FastLZ decompression error: " + e.getMessage(), e);
+                } catch (Exception e) {
+                    throw new ParseException("LZ4 decompression error: " + e.getMessage(), e);
+                }
+                break;
+            case COMPRESSION_LZ4DUO:
+                try {
+                    int intermediateSize = compressedData.length * 4;
+                    byte[] intermediate = new byte[intermediateSize];
+                    IndexedByteArray src1 = new IndexedByteArray(compressedData, 0);
+                    IndexedByteArray dst1 = new IndexedByteArray(intermediate, 0);
+                    LZ4Codec codec1 = new LZ4Codec();
+                    if (!codec1.inverse(src1, dst1)) {
+                        throw new ParseException("LZ4DUO first stage decompression failed");
                     }
-                    break;
-                default:
-                    throw new ParseException("Unsupported compression type: " + compressionType);
+                    IndexedByteArray src2 = new IndexedByteArray(intermediate, 0);
+                    IndexedByteArray dst2 = new IndexedByteArray(decompressed, 0);
+                    LZ4Codec codec2 = new LZ4Codec();
+                    if (!codec2.inverse(src2, dst2)) {
+                        throw new ParseException("LZ4DUO second stage decompression failed");
+                    }
+                } catch (Exception e) {
+                    throw new ParseException("LZ4DUO decompression error: " + e.getMessage(), e);
+                }
+                break;
+            case COMPRESSION_FASTLZ:
+                try {
+                    FastLZ.decompress(compressedData, decompressed);
+                } catch (Exception e) {
+                    throw new ParseException("FastLZ decompression error: " + e.getMessage(), e);
+                }
+                break;
+            default:
+                throw new ParseException("Unsupported compression type: " + compressionType);
             }
             return decompressed;
         } catch (java.util.zip.DataFormatException e) {
@@ -2313,7 +2425,6 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         }
     }
 
-
     // No legacy methods needed - using unified decompressData method directly
     // ========================================================================================================================
     // FST BinaryDecoder
@@ -2321,10 +2432,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     /**
      * Binary decoder for FST files that handles all binary data reading operations.
      *
-     * This class provides FST-specific reading methods including endianness detection,
-     * varint decoding, and various integer formats. It uses an internal byte buffer
-     * for efficient binary reading, supporting both direct byte array access and
-     * input stream reading with automatic buffering.
+     * This class provides FST-specific reading methods including endianness detection, varint decoding, and various integer formats. It uses an
+     * internal byte buffer for efficient binary reading, supporting both direct byte array access and input stream reading with automatic buffering.
      * All FST multi-byte integers are big-endian except for the endian test value.
      */
     private static class BinaryDecoder {
@@ -2351,10 +2460,10 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         private long totalBytesRead = 0;
 
         /**
-         * Constructor that wraps a DataInputStream for FST binary reading
-         * Creates an internal 16KB buffer and reads from the stream as needed.
+         * Constructor that wraps a DataInputStream for FST binary reading Creates an internal 16KB buffer and reads from the stream as needed.
          *
-         * @param dis The DataInputStream to wrap
+         * @param dis
+         *            The DataInputStream to wrap
          */
         public BinaryDecoder(DataInputStream dis) {
             this.inputStream = dis;
@@ -2367,7 +2476,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         /**
          * Constructor that uses a pre-existing byte array for binary reading
          *
-         * @param data The byte array containing FST data
+         * @param data
+         *            The byte array containing FST data
          */
         public BinaryDecoder(byte[] data) {
             this.inputStream = null;
@@ -2380,9 +2490,12 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         /**
          * Constructor that uses a byte array with specified offset and length
          *
-         * @param data The byte array containing FST data
-         * @param offset Starting offset in the array
-         * @param length Number of bytes to use from the array
+         * @param data
+         *            The byte array containing FST data
+         * @param offset
+         *            Starting offset in the array
+         * @param length
+         *            Number of bytes to use from the array
          */
         public BinaryDecoder(byte[] data, int offset, int length) {
             this.inputStream = null;
@@ -2397,11 +2510,13 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         // Buffer Management
         // ========================================================================================================================
         /**
-         * Ensure that at least the specified number of bytes are available in the buffer.
-         * If using stream-based reading, this will refill the buffer as needed.
+         * Ensure that at least the specified number of bytes are available in the buffer. If using stream-based reading, this will refill the buffer
+         * as needed.
          *
-         * @param bytesNeeded Number of bytes that must be available
-         * @throws ParseException If not enough data is available or read error occurs
+         * @param bytesNeeded
+         *            Number of bytes that must be available
+         * @throws ParseException
+         *             If not enough data is available or read error occurs
          */
         private void ensureAvailable(int bytesNeeded) throws ParseException, EOFException {
             if (bufferPos + bytesNeeded <= bufferLimit) {
@@ -2409,7 +2524,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                 return;
             }
             if (!isStreamBased) {
-                throw new EOFException("Not enough data in buffer. Need " + bytesNeeded + " bytes, but only " + (bufferLimit - bufferPos) + " available");
+                throw new EOFException(
+                        "Not enough data in buffer. Need " + bytesNeeded + " bytes, but only " + (bufferLimit - bufferPos) + " available");
             }
             // Stream-based reading: need to refill buffer
             refillBuffer(bytesNeeded);
@@ -2418,8 +2534,10 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         /**
          * Refill the buffer from the input stream, ensuring at least the specified bytes are available.
          *
-         * @param bytesNeeded Minimum number of bytes needed
-         * @throws ParseException If read error occurs or not enough data available
+         * @param bytesNeeded
+         *            Minimum number of bytes needed
+         * @throws ParseException
+         *             If read error occurs or not enough data available
          */
         private void refillBuffer(int bytesNeeded) throws ParseException, EOFException {
             if (bytesNeeded > buffer.length) {
@@ -2459,8 +2577,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         }
 
         /**
-         * Get the current position in the buffer.
-         * This returns the current read position within the internal buffer.
+         * Get the current position in the buffer. This returns the current read position within the internal buffer.
          *
          * @return Current buffer position
          */
@@ -2469,13 +2586,15 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         }
 
         /**
-         * Set the current position in the buffer.
-         * This is only allowed for array-based decoders (not stream-based).
-         * Setting position allows seeking within the buffer for random access.
+         * Set the current position in the buffer. This is only allowed for array-based decoders (not stream-based). Setting position allows seeking
+         * within the buffer for random access.
          *
-         * @param pos The new position to set (must be within buffer bounds)
-         * @throws IllegalStateException If called on a stream-based decoder
-         * @throws IllegalArgumentException If position is out of bounds
+         * @param pos
+         *            The new position to set (must be within buffer bounds)
+         * @throws IllegalStateException
+         *             If called on a stream-based decoder
+         * @throws IllegalArgumentException
+         *             If position is out of bounds
          */
         public void setPosition(long pos) {
             if (isStreamBased) {
@@ -2484,15 +2603,16 @@ public class FstReader extends AbstractSingleDomainRecordReader {
             if (pos < 0 || pos > bufferLimit) {
                 throw new IllegalArgumentException("Position " + pos + " is out of bounds [0, " + bufferLimit + "]");
             }
-            bufferPos = (int)pos;
+            bufferPos = (int) pos;
         }
 
         /**
-         * Get the total size of the buffer (only supported for array-based decoders).
-         * This returns the total length of the internal buffer for array-based decoders.
+         * Get the total size of the buffer (only supported for array-based decoders). This returns the total length of the internal buffer for
+         * array-based decoders.
          *
          * @return Total size of the buffer in bytes
-         * @throws IllegalStateException If called on a stream-based decoder
+         * @throws IllegalStateException
+         *             If called on a stream-based decoder
          */
         public int size() {
             if (isStreamBased) {
@@ -2505,12 +2625,12 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         // Endianness Detection
         // ========================================================================================================================
         /**
-         * Read double and perform endianness test to detect host machine byte order.
-         * This is used only for detecting the host machine's endianness, not for file data.
-         * All FST file data is always big-endian regardless of this test result.
+         * Read double and perform endianness test to detect host machine byte order. This is used only for detecting the host machine's endianness,
+         * not for file data. All FST file data is always big-endian regardless of this test result.
          *
          * @return The endian test value (should be FST_DOUBLE_ENDTEST)
-         * @throws ParseException If the endian test fails or read error occurs
+         * @throws ParseException
+         *             If the endian test fails or read error occurs
          */
         public boolean readEndianTestValue() throws ParseException, EOFException {
             ensureAvailable(8);
@@ -2536,9 +2656,9 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                 totalBytesRead += 8;
                 return false;
             }
-            throw new ParseException("Endian test failed. Neither little-endian (" + valueLE + ") nor big-endian (" + valueBE + ") matches expected value " + FST_DOUBLE_ENDTEST);
+            throw new ParseException("Endian test failed. Neither little-endian (" + valueLE + ") nor big-endian (" + valueBE
+                    + ") matches expected value " + FST_DOUBLE_ENDTEST);
         }
-
 
         // ========================================================================================================================
         // Basic Data Types (FST uses big-endian for all multi-byte integers)
@@ -2547,7 +2667,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
          * Read unsigned byte (0-255)
          *
          * @return Unsigned byte value
-         * @throws ParseException If read error occurs
+         * @throws ParseException
+         *             If read error occurs
          */
         public int readUInt8() throws ParseException, EOFException {
             ensureAvailable(1);
@@ -2561,7 +2682,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
          * Read signed byte (-128 to 127)
          *
          * @return Signed byte value
-         * @throws ParseException If read error occurs
+         * @throws ParseException
+         *             If read error occurs
          */
         public byte readInt8() throws ParseException, EOFException {
             ensureAvailable(1);
@@ -2572,11 +2694,11 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         }
 
         /**
-         * Read big-endian 64-bit unsigned integer.
-         * All FST multi-byte integers are big-endian per the reference implementation.
+         * Read big-endian 64-bit unsigned integer. All FST multi-byte integers are big-endian per the reference implementation.
          *
          * @return 64-bit unsigned integer value
-         * @throws ParseException If read error occurs
+         * @throws ParseException
+         *             If read error occurs
          */
         public long readUInt64() throws ParseException, EOFException {
             ensureAvailable(8);
@@ -2590,11 +2712,11 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         }
 
         /**
-         * Read big-endian 32-bit unsigned integer.
-         * All FST multi-byte integers are big-endian per the reference implementation.
+         * Read big-endian 32-bit unsigned integer. All FST multi-byte integers are big-endian per the reference implementation.
          *
          * @return 32-bit unsigned integer value
-         * @throws ParseException If read error occurs
+         * @throws ParseException
+         *             If read error occurs
          */
         public long readUInt32() throws ParseException, EOFException {
             ensureAvailable(4);
@@ -2608,11 +2730,11 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         }
 
         /**
-         * Read big-endian 16-bit unsigned integer.
-         * All FST multi-byte integers are big-endian per the reference implementation.
+         * Read big-endian 16-bit unsigned integer. All FST multi-byte integers are big-endian per the reference implementation.
          *
          * @return 16-bit unsigned integer value
-         * @throws ParseException If read error occurs
+         * @throws ParseException
+         *             If read error occurs
          */
         public int readUInt16() throws ParseException, EOFException {
             ensureAvailable(2);
@@ -2626,11 +2748,11 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         // FST-Specific Data Types
         // ========================================================================================================================
         /**
-         * Read variable-length integer (varint) as used in FST format.
-         * Varints are little-endian encoded with continuation bits.
+         * Read variable-length integer (varint) as used in FST format. Varints are little-endian encoded with continuation bits.
          *
          * @return Variable-length integer value
-         * @throws ParseException If read error occurs
+         * @throws ParseException
+         *             If read error occurs
          */
         public long readVarint() throws ParseException, EOFException {
             long result = 0;
@@ -2651,7 +2773,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
          * Read signed variable-length integer (svarint) as used in FST format.
          *
          * @return Signed variable-length integer value
-         * @throws ParseException If read error occurs
+         * @throws ParseException
+         *             If read error occurs
          */
         public long readSVarint() throws ParseException, EOFException {
             long rc = 0;
@@ -2679,7 +2802,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         /**
          * Calculate the number of bytes a varint value would occupy when encoded
          *
-         * @param value The value to calculate encoding size for
+         * @param value
+         *            The value to calculate encoding size for
          * @return Number of bytes required for varint encoding
          */
         public static int getVarintSize(long value) {
@@ -2692,12 +2816,13 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         }
 
         /**
-         * Read null-terminated string of specified maximum length.
-         * Used for FST header strings (simulation version, date).
+         * Read null-terminated string of specified maximum length. Used for FST header strings (simulation version, date).
          *
-         * @param maxLength Maximum length to read
+         * @param maxLength
+         *            Maximum length to read
          * @return String with null termination and whitespace trimmed
-         * @throws ParseException If read error occurs
+         * @throws ParseException
+         *             If read error occurs
          */
         public String readFixedString(int maxLength) throws ParseException, EOFException {
             ensureAvailable(maxLength);
@@ -2716,11 +2841,11 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         }
 
         /**
-         * Read null-terminated string from buffer.
-         * Used for reading strings in hierarchy data.
+         * Read null-terminated string from buffer. Used for reading strings in hierarchy data.
          *
          * @return String with null termination removed
-         * @throws ParseException If read error occurs
+         * @throws ParseException
+         *             If read error occurs
          */
         public String readNullTerminatedString() throws ParseException, EOFException {
             StringBuilder sb = new StringBuilder();
@@ -2744,8 +2869,10 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         /**
          * Read specified number of bytes into array
          *
-         * @param bytes Byte array to fill
-         * @throws ParseException If read error occurs or EOF reached
+         * @param bytes
+         *            Byte array to fill
+         * @throws ParseException
+         *             If read error occurs or EOF reached
          */
         public void readFully(byte[] bytes) throws ParseException, EOFException {
             readFully(bytes, 0, bytes.length);
@@ -2754,48 +2881,54 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         /**
          * Read specified number of bytes into array at given offset
          *
-         * @param bytes Byte array to fill
-         * @param offset Starting offset in the target array
-         * @param length Number of bytes to read
-         * @throws ParseException If read error occurs or EOF reached
+         * @param bytes
+         *            Byte array to fill
+         * @param offset
+         *            Starting offset in the target array
+         * @param length
+         *            Number of bytes to read
+         * @throws ParseException
+         *             If read error occurs or EOF reached
          */
         public void readFully(byte[] bytes, int offset, int length) throws ParseException, EOFException {
             if (!isStreamBased) {
-            // Buffer-based: can use ensureAvailable and copy directly
-            ensureAvailable(length);
-            System.arraycopy(buffer, bufferPos, bytes, offset, length);
-            bufferPos += length;
-            totalBytesRead += length;
+                // Buffer-based: can use ensureAvailable and copy directly
+                ensureAvailable(length);
+                System.arraycopy(buffer, bufferPos, bytes, offset, length);
+                bufferPos += length;
+                totalBytesRead += length;
             } else {
-            // Stream-based: may need to read in chunks if length > buffer size
-            int remaining = length;
-            int destPos = offset;
-            while (remaining > 0) {
-                int available = bufferLimit - bufferPos;
-                if (available == 0) {
-                // Fill buffer with at least 1 byte (or up to buffer size)
-                refillBuffer(Math.min(remaining, buffer.length));
-                available = bufferLimit - bufferPos;
-                if (available == 0) {
-                    throw new EOFException("End of stream reached while reading fully");
+                // Stream-based: may need to read in chunks if length > buffer size
+                int remaining = length;
+                int destPos = offset;
+                while (remaining > 0) {
+                    int available = bufferLimit - bufferPos;
+                    if (available == 0) {
+                        // Fill buffer with at least 1 byte (or up to buffer size)
+                        refillBuffer(Math.min(remaining, buffer.length));
+                        available = bufferLimit - bufferPos;
+                        if (available == 0) {
+                            throw new EOFException("End of stream reached while reading fully");
+                        }
+                    }
+                    int toCopy = Math.min(available, remaining);
+                    System.arraycopy(buffer, bufferPos, bytes, destPos, toCopy);
+                    bufferPos += toCopy;
+                    destPos += toCopy;
+                    totalBytesRead += toCopy;
+                    remaining -= toCopy;
                 }
-                }
-                int toCopy = Math.min(available, remaining);
-                System.arraycopy(buffer, bufferPos, bytes, destPos, toCopy);
-                bufferPos += toCopy;
-                destPos += toCopy;
-                totalBytesRead += toCopy;
-                remaining -= toCopy;
-            }
             }
         }
 
         /**
          * Skip specified number of bytes in the stream
          *
-         * @param count Number of bytes to skip
+         * @param count
+         *            Number of bytes to skip
          * @return Number of bytes actually skipped
-         * @throws ParseException If read error occurs
+         * @throws ParseException
+         *             If read error occurs
          */
         public int skipBytes(int count) throws ParseException {
             if (count <= 0) {
@@ -2838,10 +2971,13 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         /**
          * Skip to the end of a block given the section length and bytes already read
          *
-         * @param sectionLength Total section length including the section length field
-         * @param bytesAlreadyRead Number of bytes already read from this section
+         * @param sectionLength
+         *            Total section length including the section length field
+         * @param bytesAlreadyRead
+         *            Number of bytes already read from this section
          * @return Number of bytes skipped
-         * @throws ParseException If read error occurs
+         * @throws ParseException
+         *             If read error occurs
          */
         public int skipToBlockEnd(long sectionLength, long bytesAlreadyRead) throws ParseException {
             long remainingBytes = sectionLength - bytesAlreadyRead;
@@ -2875,7 +3011,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         /**
          * Close the underlying stream
          *
-         * @throws ParseException If close error occurs
+         * @throws ParseException
+         *             If close error occurs
          */
         public void close() throws ParseException {
             if (isStreamBased && inputStream != null) {
