@@ -1,19 +1,14 @@
----
+<!---
 title: "VCD (Value Change Dump) Reader"
 author: "Thomas Haber"
 keywords: [VCD, Value Change Dump, impulse, EDA, waveform, simulation, signal analysis, digital, parser, extension]
 description: "The VCD Reader extension for impulse enables efficient import, filtering, and analysis of digital simulation waveforms in the VCD format. Supports advanced configuration, hierarchical browsing, and seamless integration with impulse's visualization and processing tools."
 category: "impulse-extension"
 tags:
-  - extension
-  - eda
-  - vcd
-  - waveform
-  - impulse
-  - simulation
-  - import
-docID: 1096
----
+  - reference
+  - serializer
+docID: 
+--->
 # VCD (Value Change Dump) Reader
 
 The VCD Reader enables users to import and analyze digital simulation waveforms in the widely adopted VCD (Value Change Dump) format within the impulse framework. Designed for engineers and verification specialists, it provides a seamless bridge between simulation outputs and impulse's powerful visualization, analysis, and processing tools.
@@ -26,6 +21,12 @@ With the VCD Reader, users can:
 - Benefit from robust error handling, progress reporting, and integration with impulse's property and logging systems
 
 The VCD Reader is fully integrated into the impulse ecosystem, supporting flexible configuration and high-performance data handling for both small and large simulation datasets.
+
+## Supporting
+
+This serializer supports:
+- PROPERTIES: Provides options to customize serialisation behavior, filtering, and output attributes for serializers.
+- CONFIGURATION: The serializer supports configuration management, allowing users to add and select configurations to override default name patterns and properties. 
 
 ## Properties
 
@@ -50,6 +51,9 @@ The VCD Reader exposes a comprehensive set of configurable properties that contr
 
 **Logging and Diagnostics Properties**
 The parser integrates with impulse's console logging system, providing configurable verbosity levels for diagnostic output during the import process. Console properties control the level of detail in parsing progress reports, timing statistics, and error information.
+
+## Format
+For a detailed description of the VCD file format, refer to [vcd-format.md](vcd-format.md).
 
 ## Known Limitation
 

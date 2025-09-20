@@ -19,6 +19,7 @@ import com.occultusterra.compression.FastLZ;
 
 import de.toem.impulse.ImpulseBase;
 import de.toem.impulse.cells.record.IRecord;
+import de.toem.impulse.extension.eda.waveform.i18n.I18n;
 import de.toem.impulse.samples.IFloatSamplesWriter;
 import de.toem.impulse.samples.ILogicSamplesWriter;
 import de.toem.impulse.samples.ISample;
@@ -61,10 +62,10 @@ public class FstReader extends AbstractSingleDomainRecordReader {
 
     public static class Annotation extends AbstractSingleDomainRecordReader.Annotation {
 
-        public static final String id = "de.toem.impulse.reader.fst";
-        public static final String label = "FST Reader";
-        public static final String description = "";
-        public static final String helpURL = "";
+    public static final String id = "de.toem.impulse.reader.fst";
+    public static final String label = I18n.Serializer_FstReader;
+    public static final String description = I18n.Serializer_FstReader_Description;
+    public static final String helpURL = I18n.Serializer_FstReader_HelpURL;
         public static final String defaultNamePattern = "\\.fst$,\\.FST$";
         public static final String formatType = "fst";
         public static final String certificate = "YxwDcTBbUGoX55dzJYLYVcwkeYbjTaQ4VhODxCEfY7ExnE2ylazpEwuuq2EVmdJTgxpkFOEmAqkU6uVBl8aJVVrYkwPSzJaFhUr/WoBdVois32cE7YnIMRETtAegBG12pEoaVokZbyfN8n+x6wMQ4GM7T5AZBDPTuIhjJH3o8OxpgsHjUp4vFR3QGmwOna0dETtv1pK8dv2TUx6u5nwdrE3q/eQ9XErX95ADy7yykYWi/pufDW1mXV9ASrb2qXEAysCS9foHYxdCbQ5xNyD2RCkVUgvsd0nrF6SV2WYyXI9zE5/BjAjK+DW00ffZI/tf88GmCj4rYqWeBa9vhrttLfTI1u4UtRBD";

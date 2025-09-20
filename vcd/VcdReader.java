@@ -12,6 +12,7 @@ import de.toem.impulse.ImpulseBase;
 import de.toem.impulse.cells.record.IRecord;
 import de.toem.impulse.cells.record.Record;
 import de.toem.impulse.cells.record.RecordScope;
+import de.toem.impulse.extension.eda.waveform.i18n.I18n;
 import de.toem.impulse.samples.IEventSamplesWriter;
 import de.toem.impulse.samples.IFloatSamplesWriter;
 import de.toem.impulse.samples.ILogicSamplesWriter;
@@ -77,13 +78,13 @@ import de.toem.toolkits.utils.text.MultilineText;
 public class VcdReader extends AbstractSingleDomainRecordReader {
 
     public static class Annotation extends AbstractSingleDomainRecordReader.Annotation {
-        public static final String id = "de.toem.impulse.reader.vcd";
-        public static final String label = "VCD Reader";
-        public static final String description = "";
-        public static final String helpURL = "";
-        public static final String defaultNamePattern = "\\.vcd$,\\.VCD$";
-        public static final String formatType = "vcd";
-        public static final String certificate = "YxwDcTBbUGoX55dzJYLYVcwkeYbjTaQ4VhODxCEfY7ExnE2ylazpEwuuq2EVmdJTgxpkFOEmAqkU6uVBl8aJVVrYkwPSzJaFm8Jr7Njkel6s32cE7YnIMRETtAegBG12pEoaVokZbyfN8n+x6wMQ4GM7T5AZBDPTuIhjJH3o8OxpgsHjUp4vFR3QGmwOna0dETtv1pK8dv2TUx6u5nwdrE3q/eQ9XErX/1LjZEUVUZg0FEl9YhoS5V9ASrb2qXEAysCS9foHYxdCbQ5xNyD2RPns6md3jwTKDpgaUgtYhvKJIZhcsGIqXAIba3y0vG8BWoUKbwWZXOj1uH723KE6GMbtTZEudHte";
+    public static final String id = "de.toem.impulse.reader.vcd";
+    public static final String label = I18n.Serializer_VcdReader;
+    public static final String description = I18n.Serializer_VcdReader_Description;
+    public static final String helpURL = I18n.Serializer_VcdReader_HelpURL;
+    public static final String defaultNamePattern = "\\.vcd$,\\.VCD$";
+    public static final String formatType = "vcd";
+    public static final String certificate = "YxwDcTBbUGoX55dzJYLYVcwkeYbjTaQ4VhODxCEfY7ExnE2ylazpEwuuq2EVmdJTgxpkFOEmAqkU6uVBl8aJVVrYkwPSzJaFm8Jr7Njkel6s32cE7YnIMRETtAegBG12pEoaVokZbyfN8n+x6wMQ4GM7T5AZBDPTuIhjJH3o8OxpgsHjUp4vFR3QGmwOna0dETtv1pK8dv2TUx6u5nwdrE3q/eQ9XErX/1LjZEUVUZg0FEl9YhoS5V9ASrb2qXEAysCS9foHYxdCbQ5xNyD2RPns6md3jwTKDpgaUgtYhvKJIZhcsGIqXAIba3y0vG8BWoUKbwWZXOj1uH723KE6GMbtTZEudHte";
     }
 
     // --- Static content and parsing definitions ---

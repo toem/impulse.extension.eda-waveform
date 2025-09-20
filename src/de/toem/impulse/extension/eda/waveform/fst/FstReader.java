@@ -1,1 +1,1 @@
-/home/thomas/Workspaces/impulse/de.toem.impulse.extension.eda.waveform/fst/FstReader.java
+/home/thomas/Workspaces/impulse/de.toem.impulse.extension.eda-waveform/fst/FstReader.java

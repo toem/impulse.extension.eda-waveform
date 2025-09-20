@@ -1,3 +1,14 @@
+<!---
+title: "FST (Fast Signal Trace) Reader"
+author: "Thomas Haber"
+keywords: [FST, Fast Signal Trace, impulse, EDA, waveform, simulation, signal analysis, digital, parser, extension, compressed, block-compressed]
+description: "The FST Reader extension for impulse enables efficient import, filtering, and analysis of digital simulation waveforms in the FST format. Supports advanced configuration, hierarchical browsing, block-compressed data, and seamless integration with impulse's visualization and processing tools. Experimental status: subject to change."
+category: "impulse-extension"
+tags:
+  - reference
+  - serializer
+docID: xxx
+--->
 # FST (Fast Signal Trace) Reader
 
 > ⚠️ Important: Experimental
@@ -13,6 +24,14 @@ With the FST Reader, you can:
 - Benefit from robust progress reporting, error diagnostics, and property integration
 
 The FST Reader integrates into the impulse ecosystem and is designed for high-performance, low-memory parsing of large datasets, supporting multiple compression schemes and advanced per-signal value-change encoding.
+
+## Supporting
+
+This serializer supports:
+- PROPERTIES: Provides options to customize serialisation behavior, filtering, and output attributes for serializers.
+- CONFIGURATION: The serializer supports configuration management, allowing users to add and select configurations to override default name patterns and properties. 
+
+## Properties
 
 **Signal Selection Properties**
 - **Include**: Regular expression pattern to include specific signals during import. Only signals matching this pattern will be imported into the waveform viewer.
@@ -30,6 +49,9 @@ The FST Reader integrates into the impulse ecosystem and is designed for high-pe
 
 **Logging and Diagnostics Properties**
 The parser integrates with impulse's console logging system, providing configurable verbosity levels for diagnostic output during the import process. Console properties control the level of detail in parsing progress reports, timing statistics, and error information.
+
+## Format
+For a detailed description of the VCD file format, refer to [fst-format.md](fst-format.md).
 
 ## Known Limitations
 

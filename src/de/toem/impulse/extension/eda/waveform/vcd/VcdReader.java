@@ -1,1 +1,1 @@
-/home/thomas/Workspaces/impulse/de.toem.impulse.extension.eda.waveform/vcd/VcdReader.java
+/home/thomas/Workspaces/impulse/de.toem.impulse.extension.eda-waveform/vcd/VcdReader.java
