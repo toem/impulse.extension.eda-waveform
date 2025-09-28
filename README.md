@@ -54,9 +54,29 @@ This package currently includes, or is planned to include, readers (and optional
 
 Additional formats may be added in the future as the needs of the EDA and impulse communities evolve.
 
-## Getting Started
+## Quick Start
 
-To use this extension, install it into your impulse-enabled environment. Once installed, you can import supported EDA waveform files directly into impulse for analysis and visualization. For details on implementing or extending readers and writers, refer to the [impulse documentation](https://toem.io/category/resources/).
+* Select a file to view.
+* Use the context menus 'Open with' and select the impulse Viewer (You may select the impulse Viewer as the default option at this point).
+* On activation, it may take a while (a few secs) to load the backend java server. The OS may ask you for approval.
+* Accept the license.
+* Create a new view.
+* DnD signals into the view. 
+* Have fun !
+
+## License
+
+**Our guiding principle for this and all subsequent versions is:**
+
+* Non-commercial use is free.
+* Commercial use requires a commercial license (including a free plan).
+* see [LICENSE.md](LICENSE.md)
+* see [Plans](https://toem.io/index.php/pricing)
+
+
+## Documentation
+ 
+Enter [https://toem.io/resources/](https://toem.io/resources/) for more information about impulse. 
 
 ## Status
 
