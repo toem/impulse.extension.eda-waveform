@@ -1,0 +1,12 @@
+.vscode/
+.git/
+.gitignore
+.impulse/
+platforms/
+scripts/
+history
+bin/
+other/
+doc/
+META-INF/
+

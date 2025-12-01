@@ -1,0 +1,72 @@
+var Tester = Class.forName("de.toem.toolkits.pattern.element.serializer.AbstractCellReader");
+var samples = pwd+"/samples/";
+
+var id = "de.toem.impulse.reader.vcd";
+var descriptor = Elements.serializers.get(id);
+var properties = descriptor.getPropertyModel(null,null);
+var noVector = descriptor.getPropertyModel(null,null);
+noVector.setVal("vector","false");
+
+var rid = "de.toem.serializer.genericZmlWriter";
+
+
+Tester.createReference(id, samples+"/t0001.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0002.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0002.vcd",noVector.total(),rid, samples+"/t0002_novector.recMz", null, console);
+Tester.createReference(id, samples+"/t0003.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0004.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0005.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0006.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0007.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0008.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0008.vcd",noVector.total(),rid, samples+"/t0008_novector.recMz", null, console);
+Tester.createReference(id, samples+"/t0009.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0010.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0011.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0012.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0013.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0014.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0015.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0016.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0017.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0018.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0019.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0020.vcd",null,rid, null, null, console);
+//Tester.createReference(id, samples+"/t0021.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0022.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0023.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0024.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0025.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0026.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0027.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0028.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0029.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t0030.vcd",null,rid, null, null, console);
+
+// range
+properties.setVal("start","50ms");
+properties.setVal("end","100ms");
+Tester.createReference(id, samples+"/t0003.vcd", properties.total(), rid,samples+"/t0003_range.recMz",null, console);
+properties.reset("start");
+properties.reset("end");
+
+// include / exclude
+properties.setVal("include","scp0001");
+properties.setVal("exclude","scp0003");
+properties.setVal("empty","false");
+Tester.createReference(id, samples+"/t0004.vcd", properties.total(), rid,samples+"/t0004_select.recMz",null,console);
+properties.reset("include");
+properties.reset("exclude");
+properties.reset("empty");
+
+
+// transform
+properties.setVal("delay","10ms");
+properties.setVal("dilate","2");
+Tester.createReference(id, samples+"/t0005.vcd", properties.total(), rid,samples+"/t0005_transform.recMz",null,console);
+properties.reset("delay");
+properties.reset("dilate");
+
+Tester.createReference(id, samples+"/t1001.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t1002.vcd",null,rid, null, null, console);
+Tester.createReference(id, samples+"/t1003.vcd",null,rid, null, null, console);

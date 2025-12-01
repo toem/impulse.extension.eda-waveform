@@ -1,17 +1,14 @@
 package de.toem.impulse.extension.eda.waveform.fst;
 
-import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.Inflater;
-
-import com.occultusterra.compression.FastLZ;
 
 import de.toem.impulse.ImpulseBase;
 import de.toem.impulse.cells.record.IRecord;
@@ -19,6 +16,8 @@ import de.toem.impulse.extension.eda.waveform.i18n.I18n;
 import de.toem.impulse.samples.IFloatSamplesWriter;
 import de.toem.impulse.samples.ILogicSamplesWriter;
 import de.toem.impulse.samples.ISample;
+import de.toem.impulse.samples.ITextSamplesWriter;
+import de.toem.impulse.samples.domain.IDomainBase;
 import de.toem.impulse.samples.domain.TimeBase;
 import de.toem.impulse.serializer.AbstractSingleDomainRecordReader;
 import de.toem.impulse.serializer.BinaryParseBuffer;
@@ -37,22 +36,43 @@ import de.toem.toolkits.pattern.ide.Ide;
 import de.toem.toolkits.pattern.pageable.BytesPageable;
 import de.toem.toolkits.pattern.pageable.Pageable;
 import de.toem.toolkits.pattern.properties.IPropertyModel;
+import de.toem.toolkits.pattern.registry.IRegistryObject;
 import de.toem.toolkits.pattern.registry.RegistryAnnotation;
 import de.toem.toolkits.pattern.threading.IProgress;
 import de.toem.toolkits.utils.serializer.ParseException;
 import de.toem.toolkits.utils.text.MultilineText;
-import kanzi.IndexedByteArray;
-import kanzi.function.LZ4Codec;
 
 /**
- * FST (Fast Signal Trace) Record Reader for the impulse framework.
+ * Advanced FST (Fast Signal Trace) file reader implementation for the impulse framework.
  *
- * This reader processes FST (Fast Signal Trace) files, which are commonly used in digital design and verification workflows. FST is a compact binary
- * format for storing digital signals and their values over time.
+ * This reader provides comprehensive support for parsing FST format files, which are widely used
+ * in digital design and verification workflows for storing simulation waveform data. FST is a 
+ * highly compressed binary format that efficiently captures signal value changes over time,
+ * making it ideal for large-scale simulation datasets.
  *
- * The reader currently supports basic block parsing to identify different sections of the FST file: - Header blocks (FST_BL_HDR = 0) - Value Change
- * blocks (FST_BL_VCDATA = 1) - Blackout blocks (FST_BL_BLACKOUT = 2) - Geometry blocks (FST_BL_GEOM = 3) - Hierarchy blocks (FST_BL_HIER = 4 and
- * compressed variants 6, 7)
+ * Key capabilities of this reader include:
+ * - Complete FST file format parsing with support for all standard block types
+ * - Multi-level decompression support (Zlib, Gzip, LZ4, LZ4DUO, FastLZ)
+ * - Hierarchical design structure reconstruction with scope and signal organization
+ * - Dynamic aliasing support for memory-efficient signal representation
+ * - Value change data parsing with precise timestamp reconstruction
+ * - Support for multiple signal types (logic vectors, real values, strings)
+ * - Configurable signal filtering and time range selection
+ * - Hierarchical name resolution for SystemC-style naming conventions
+ * - Vector signal grouping and bit-range extraction
+ * 
+ * The reader implements a two-phase parsing strategy:
+ * 1. **Phase 1**: Structural parsing to build the design hierarchy and identify data blocks
+ * 2. **Phase 2**: Value change processing to extract and write signal sample data
+ * 
+ * Signal data is organized hierarchically according to the original design structure,
+ * with support for filtering based on regular expressions and time range constraints.
+ * The implementation handles various FST block types including header blocks, geometry
+ * blocks for signal definitions, hierarchy blocks for design structure, and value change
+ * blocks containing the actual waveform data.
+ *
+ * Copyright (c) 2013-2025 Thomas Haber
+ * All rights reserved.
  */
 @RegistryAnnotation(annotation = FstReader.Annotation.class)
 public class FstReader extends AbstractSingleDomainRecordReader {
@@ -104,27 +124,6 @@ public class FstReader extends AbstractSingleDomainRecordReader {
 
     // Skip block placeholder
     private static final int FST_BL_SKIP = 255;
-
-    // ========================================================================================================================
-    // Compression Type Constants (independent of FST block types)
-    // ========================================================================================================================
-    // No compression
-    private static final int COMPRESSION_NONE = 0;
-
-    // Zlib/Deflate compression (used in geometry blocks)
-    private static final int COMPRESSION_ZLIB = 1;
-
-    // Gzip compression (used in hierarchy blocks)
-    private static final int COMPRESSION_GZIP = 2;
-
-    // LZ4 compression (used in hierarchy blocks)
-    private static final int COMPRESSION_LZ4 = 3;
-
-    // Dual-stage LZ4 compression (used in hierarchy blocks)
-    private static final int COMPRESSION_LZ4DUO = 4;
-
-    // FastLZ compression (used in hierarchy blocks)
-    private static final int COMPRESSION_FASTLZ = 5;
 
     // Header constants
     // Simulation version string length
@@ -255,7 +254,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     // ========================================================================================================================
     static final int TOKEN_NONE = 0xff;
 
-    static final int[] token = new int[256];
+    static final int[] token = new int[256]; 
 
     static {
         for (int i = 0; i < 256; i++)
@@ -263,14 +262,14 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         token[0 << 1] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_0_BITS;
         token[1 << 1] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_1_BITS;
 
-        token[1 | (0 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_X_BITS;
-        token[1 | (1 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_Z_BITS;
-        token[1 | (2 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_H_BITS;
-        token[1 | (3 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_U_BITS;
-        token[1 | (4 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_W_BITS;
-        token[1 | (5 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_L_BITS;
-        token[1 | (6 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_D_BITS;
-        token[1 | (7 << 1)] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_UNKNOWN_BITS;
+        token[1 | (0 << 1)] = (ISample.STATE_LEVEL_4 << 4) | ISample.STATE_X_BITS;
+        token[1 | (1 << 1)] = (ISample.STATE_LEVEL_4 << 4) | ISample.STATE_Z_BITS;
+        token[1 | (2 << 1)] = (ISample.STATE_LEVEL_16 << 4) | ISample.STATE_H_BITS;
+        token[1 | (3 << 1)] = (ISample.STATE_LEVEL_16 << 4) | ISample.STATE_U_BITS;
+        token[1 | (4 << 1)] = (ISample.STATE_LEVEL_16 << 4) | ISample.STATE_W_BITS;
+        token[1 | (5 << 1)] = (ISample.STATE_LEVEL_16 << 4) | ISample.STATE_L_BITS;
+        token[1 | (6 << 1)] = (ISample.STATE_LEVEL_16 << 4) | ISample.STATE_D_BITS;
+        token[1 | (7 << 1)] = (ISample.STATE_LEVEL_16 << 4) | ISample.STATE_UNKNOWN_BITS;
 
         token['0'] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_0_BITS;
         token['1'] = (ISample.STATE_LEVEL_2 << 4) | ISample.STATE_1_BITS;
@@ -291,8 +290,40 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     }
 
     // ========================================================================================================================
-    // Instance Variables
+    // Properties
     // ========================================================================================================================
+
+    // Whether hierarchy resolution is enabled (SystemC)- contains split regEx if enabled 
+    private String hierarchyResolver;
+    
+    // Whether vector resolution is enabled (for multi-bit signals))
+    private boolean vectorResolver;
+    
+    // Whether empty scopes should be kept in the record structure
+    private boolean keepEmptyScopes;
+    
+    // List of filter expressions to include signals during import
+    private List<FilterExpression> includeSignals;
+    
+    // List of filter expressions to exclude signals during import
+    private List<FilterExpression> excludeSignals;
+    
+    // Start time for importing samples (domain units)
+    private long start = Long.MIN_VALUE;
+    
+    // End time for importing samples (domain units)
+    private long end = Long.MAX_VALUE;
+    
+    // Delay to apply to all timestamps (domain units)
+    private long delay = 0;
+    
+    // Stretch factor for timestamps
+    private double dilate = 1;
+    
+    // ========================================================================================================================
+    // Content
+    // ========================================================================================================================
+    
     // Handle assignment tracking (mirrors C implementation)
     // Current handle counter hierachy parsing
     private long currentHierarchyHandle = 0;
@@ -305,6 +336,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
 
     // Waveform variables array for signal storage (indexed by handle ID)
     private FstVariable[] waveformVariables;
+    
+    Map<ICell, List<WaveformVariable<Integer>>> varsByScope = new LinkedHashMap<>();
 
     // Storage for compressed/uncompressed CBOR transaction chunks
     public Pageable<byte[]> dataBlocks;
@@ -340,21 +373,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
 
     private int fileType;
 
-    private long timezero;
+    private long timeZero;
 
-    // Filtering and configuration options
-    private boolean keepEmptyScopes;
-
-    private List<FilterExpression> includeSignals;
-
-    private List<FilterExpression> excludeSignals;
-
-    private long start = Long.MIN_VALUE;
-
-    private long end = Long.MAX_VALUE;
-
-    // private long delay = 0;
-    // private double scale = 1;
     // ========================================================================================================================
     // FST Variable Class
     // ========================================================================================================================
@@ -397,7 +417,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
          * @param handle
          *            Handle ID for logging purposes
          */
-        public void setInitialValue(byte[] data, int pos, int length) {
+        public void setFrame(byte[] data, int pos, int length) {
             // console.log("setInitialValue", name, (char)data[0]);
             // if (length == 1 && data[pos] == 'x')
             // data[pos+0] = 'u';
@@ -419,44 +439,56 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         /**
          * Add a value change for a 1-bit signal
          */
-        public void writeChange1Bit(long timestamp, byte data) throws ParseException {
-            // console.log("writeChange1Bit", name, timestamp, data); }
-            int t = token[data];
-            if (t == TOKEN_NONE)
-                throw new ParseException("Invalid logic vector state: " + data);
+        public void writeChange1Bit(long time, byte data) throws ParseException {
 
+            // check for range and filter
+            if (writer == null)
+                return;
+           
+            // transform and check for range 
+            long current = dilate == 1.0 ? time + delay : (long) ((time  + delay) * dilate);
+            if ( current < start || current>end)
+                return;
+           
             // intialiaze frame data
             if (this.idata != null) {
                 byte[] idata = this.idata;
                 this.idata = null; // reset idata to avoid reusing it
-                if (timestamp > startTime) {
+                if (time > startTime) {
                     writeChange(startTime, false, idata, 0, idata.length);
                 }
             }
 
+            // value
+            int t = token[data];
+            if (t == TOKEN_NONE)
+                throw new ParseException("Invalid logic vector state: " + data);
+            
             byte state = (byte) (t & 0xf);
             int level = t >> 4;
             boolean tag = state == ISample.STATE_X_BITS;
-            if (aliases != null)
-                for (int alias : aliases) {
-                    FstVariable var = waveformVariables[alias];
-                    if (var != null && var.writer instanceof ILogicSamplesWriter) {
-                        ((ILogicSamplesWriter) var.writer).write(timestamp, false, level, state);
-                    }
-                }
-            else if (writer instanceof ILogicSamplesWriter)
-                ((ILogicSamplesWriter) writer).write(timestamp, false, level, state);
+            ((ILogicSamplesWriter) writer).write(current, tag, level, state);
         }
 
         /**
          * Add a value change for a multi-bit logic signal
          */
-        public void writeChange(long timestamp, boolean bitData, byte[] data, int pos, int length) throws ParseException {
-            // intialiaze frame data
+        public void writeChange(long time, boolean bitData, byte[] data, int pos, int length) throws ParseException {
+
+            // check for range and filter
+            if (writer == null)
+                return;
+           
+            // transform and check for range 
+            long current = dilate == 1.0 ? time + delay : (long) ((time  + delay) * dilate);
+            if ( current < start || current>end)
+                return;
+            
+            // frame data
             if (this.idata != null) {
                 byte[] idata = this.idata;
                 this.idata = null; // reset idata to avoid reusing it
-                if (timestamp > startTime) {
+                if (time > startTime) {
                     writeChange(startTime, false, idata, 0, idata.length);
                 }
             }
@@ -492,15 +524,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                         tag = tag || (state == ISample.STATE_X_BITS);
                     }
                 }
-                if (aliases != null)
-                    for (int alias : aliases) {
-                        FstVariable var = waveformVariables[alias];
-                        if (var != null && var.writer instanceof ILogicSamplesWriter) {
-                            ((ILogicSamplesWriter) var.writer).write(timestamp, tag, (byte) ISample.STATE_0_BITS, states, 0, scale);
-                        }
-                    }
-                else if (writer instanceof ILogicSamplesWriter)
-                    ((ILogicSamplesWriter) writer).write(timestamp, tag, (byte) ISample.STATE_0_BITS, states, 0, scale);
+                ((ILogicSamplesWriter) writer).write(current, tag, (byte) ISample.STATE_0_BITS, states, 0, scale);
 
             } else if (dataType == ISample.DATA_TYPE_FLOAT) {
                 // For floating-point signals, we expect 8 bytes (double precision)
@@ -519,13 +543,14 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                         }
                     }
                     double value = Double.longBitsToDouble(bits);
-                    // console.log("writeChange", name, timestamp, bits, value);
-                    if (writer != null) {
-                        ((IFloatSamplesWriter) writer).write(timestamp, false, value);
-                    }
+                    ((IFloatSamplesWriter) writer).write(current, false, value);
                 }
 
-            } else {
+            } else if (dataType == ISample.DATA_TYPE_TEXT) {
+                String val = new String(data,  pos,  length);
+                ((ITextSamplesWriter) writer).write(current, false, val);
+
+            } else{
                 throw new ParseException("Unsupported data type for writeChange: " + dataType);
             }
         }
@@ -625,7 +650,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
      * @return The property model containing all configurable properties for this reader
      */
     static public IPropertyModel getPropertyModel(ISerializerDescriptor object, Object context) {
-        return IParsingRecordReader.getPropertyModel(PROP_DOMAIN_BASE).add(ConfiguredConsoleStream.getPropertyModel());
+        boolean notPref = context != IRegistryObject.Preference.class;
+        return IParsingRecordReader.getPropertyModel( PROP_EMPTY|PROP_HIERARCHY|(notPref?(PROP_INCLUDE|PROP_RANGE|PROP_TRANSFORM):0)).add(ConfiguredConsoleStream.getPropertyModel());
     }
 
     // ========================================================================================================================
@@ -641,12 +667,16 @@ public class FstReader extends AbstractSingleDomainRecordReader {
      * @return APPLICABLE if this reader can process the input, NOT_APPLICABLE otherwise
      */
     @Override
-    protected int isApplicable(String name, String contentType) {
+    public int isApplicable(String name, String contentType, String cellType, IInputRequest inputRequest) {
         // Check if file has FST extension
-        if (name != null && name.toLowerCase().endsWith(".fst")) {
-            return APPLICABLE;
+        if (name != null && !name.toLowerCase().endsWith(".fst")) {
+            return NOT_APPLICABLE;
         }
-        return NOT_APPLICABLE;
+        // Check header block size
+        byte[] header = inputRequest.bytes(9);
+        byte[] expected = {   0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x49 };  // normal header
+        byte[] expected2 = { -2, 0x00, 0x00};  // everthing packed
+        return Utils.equals(header, expected) || (header != null && Utils.equals(Arrays.copyOf(header, 3), expected2))  ? APPLICABLE : NOT_APPLICABLE;
     }
 
     // ========================================================================================================================
@@ -673,39 +703,71 @@ public class FstReader extends AbstractSingleDomainRecordReader {
             // Set up console logging
             console = new ConfiguredConsoleStream(Ide.DEFAULT_CONSOLE, getLabel(), ConfiguredConsoleStream.logging(getProperties()));
             console.info("FST Reader initialized - parsing file");
+
+            // resolver
+            this.hierarchyResolver = getProperty("hierarchy"); 
+            this.vectorResolver = Boolean.TRUE == getTypedProperty("vector");
+
+            // exclude/include
+            this.includeSignals = FilterExpression.createList(getProperty("include"), FilterExpression.TYPE_REGULAR | FilterExpression.TYPE_TEXT);
+            this.excludeSignals = FilterExpression.createList(getProperty("exclude"), FilterExpression.TYPE_REGULAR | FilterExpression.TYPE_TEXT);
+            // empty scopes
+            this.keepEmptyScopes = Boolean.TRUE == getTypedProperty("empty");
+            
             // Wrap input stream in BinaryDecoder for all binary access
             reader = new BinaryParseBuffer(in, DEFAULT_BUFFER_SIZE);
             parsePhase1(reader);
-            // Create an empty record with nanosecond time base (default for FST files)
-            TimeBase base = TimeBase.valueOf(TimeBase.s.ordinal() + timescale);
-            initRecord("FST Data", base);
-            if (waveformVariables != null) {
-                // identify groups
-                Map<ICell, List<WaveformVariable<Integer>>> varsByScope = new LinkedHashMap<>();
-                // iterate over
-                for (int handle = 1; handle < waveformVariables.length; handle++) {
-                    FstVariable var = waveformVariables[handle];
-                    if (var != null && var.scope != null)
-                        varsByScope.computeIfAbsent(var.scope, k -> new ArrayList<>()).add(var);
-                }
-                WaveformVariable.identifyGroups(varsByScope, false);
-                WaveformVariable.createSignals(varsByScope, getRoot(), base, this.includeSignals, this.excludeSignals);
-                WaveformVariable.createWriters(varsByScope, base, this);
 
+            // Create an empty record with nanosecond time base (default for FST files)
+            TimeBase timeBase = TimeBase.valueOf(TimeBase.s.ordinal() + timescale);
+            
+            // Parse time range and transformation properties
+            long start = timeBase.parseMultiple(getProperty("start"), IDomainBase.PARSE_BIG | IDomainBase.PARSE_DOMAINBASE, this.start).longValue();
+            long end = timeBase.parseMultiple(getProperty("end"), IDomainBase.PARSE_BIG | IDomainBase.PARSE_DOMAINBASE, this.end).longValue();
+            this.delay = timeBase.parseMultiple(getProperty("delay"), IDomainBase.PARSE_BIG | IDomainBase.PARSE_DOMAINBASE, this.delay).longValue();
+            this.dilate = Utils.parseDouble(getProperty("dilate"), this.dilate);
+
+            // adjust start & end time
+            this.start = dilate == 1.0 ? startTime + delay : (long) ((startTime  + delay) * dilate);
+            this.end = dilate == 1.0 ? endTime + delay : (long) ((endTime  + delay) * dilate);          
+            this.start = this.start < start ? start:this.start;            
+            this.end = this.end > end && end >= this.start  ? end:this.end;
+
+            // init record
+            initRecord(FstReader.Annotation.formatType, timeBase);
+            if (waveformVariables != null) {
+
+                WaveformVariable.identifyGroups(varsByScope, false);
+                WaveformVariable.createSignals(varsByScope, getRoot(), timeBase, this.includeSignals, this.excludeSignals);
+                WaveformVariable.createWriters(varsByScope, timeBase, this);
+
+                // Remove empty scopes if configured
+                if (!keepEmptyScopes) {
+                    console.info("Removing empty scopes from record structure");
+                    removeEmptyScopes(base, false);
+                }
+
+                // Build hierarchical signal organization if enabled
+                if (!Utils.isEmpty(hierarchyResolver)) {
+                    console.info("Building hierarchical signal organization");
+                    resolveHierarchies(base, hierarchyResolver,"Hierarchy");    
+                }
+                
                 // Notify that record structure has been created
                 changed(CHANGED_RECORD);
                 // Initialize at position 0
-                open(startTime);
+                open(this.start);
                 changed(CHANGED_CURRENT, 0);
                 parsePhase2();
                 // Close the record
-                close(endTime);
+
             } else
                 throw new ParseException("No variables found");
         } catch (Throwable e) {
             throw new ParseException("Error in FST reader: " + e.getMessage(), e);
         } finally {
             try {
+                close(this.end);
                 if (in != null) {
                     in.close();
                 }
@@ -718,17 +780,21 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     void parsePhase1(BinaryParseBuffer reader) throws ParseException {
         // Parse FST file blocks sequentially
         int blockCount = 0;
-        console.info("=== Starting FST Block Parsing ===");
+        console.info("parsePhase1()");
         try {
+
             while (reader.hasMoreData()) {
+
                 // Read block type
                 int blockType = reader.getIntBE(1, false);
                 blockCount++;
                 String blockTypeName = BLOCK_TYPE_NAMES.getOrDefault(blockType, "UNKNOWN");
                 console.info("Block #", blockCount, ": Type=0x", Integer.toHexString(blockType), " (", blockTypeName, ")");
+
                 // Check if this is a VCDATA block (for special handling)
                 boolean isVcdataBlock = (blockType == FST_BL_VCDATA || blockType == FST_BL_VCDATA_DYN_ALIAS || blockType == FST_BL_VCDATA_DYN_ALIAS2);
                 boolean isZwrapperBlock = (blockType == FST_BL_ZWRAPPER);
+
                 // Read section length (common to all block types except some special cases)
                 long sectionLength;
                 byte[] blockData;
@@ -745,6 +811,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                         // For VCDATA blocks: create array with type + section length + payload
                         // 1 byte type + 8 bytes section length + payload
                         byte[] fullBlock = new byte[9 + (int) dataSize];
+                        
                         // Set the first 9 bytes to type and section length
                         fullBlock[0] = (byte) blockType;
                         // Write section length in big-endian format (8 bytes)
@@ -927,7 +994,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
 
         // Offset 313: Time zero offset (8 bytes, big-endian signed)
         // Offset to be added to all timestamps for absolute time
-        this.timezero = buffer.getLongBE(8, false);
+        this.timeZero = buffer.getLongBE(8, false);
 
         // ========================================================================================================================
         // Log parsed header information for debugging
@@ -943,7 +1010,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         console.info("    Section Count:", sectionCount);
         console.info("    Timescale:", (byte) timescale);
         console.info("    File Type:", fileType, "(", getFileTypeName(fileType), ")");
-        console.info("    Time Zero:", timezero);
+        console.info("    Time Zero:", timeZero);
         console.info("    Simulation Version: '", simVersion, "'");
         console.info("    Date: '", dateString, "'");
         console.info("  Endianness:", this.littleEndian ? "Little-endian" : "Big-endian");
@@ -962,8 +1029,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         console.info("  Header parsing completed successfully");
 
         // Apply time zero offset to get absolute simulation times
-        startTime += timezero;
-        endTime += timezero;
+        startTime += timeZero;
+        endTime += timeZero;
     }
 
     /**
@@ -1117,13 +1184,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
 
             if (compressedDataLength > 0) {
                 // Read the compressed geometry data byte-by-byte from the BinaryParseBuffer
-                byte[] compressedData = new byte[(int) compressedDataLength];
-                for (int i = 0; i < compressedDataLength; i++) {
-                    compressedData[i] = reader.getByte(); // Sequential byte reads from offset 16+
-                }
-
-                // Decompress using zlib algorithm with expected output size validation
-                byte[] decompressedData = decompressData(compressedData, COMPRESSION_ZLIB, uncompressedLength);
+                byte[] decompressedData = reader.decompressBytes((int)compressedDataLength, BinaryParseBuffer.COMPRESSION_ZLIB, (int)uncompressedLength);
                 if (decompressedData != null) {
                     console.info("  Successfully decompressed geometry data");
 
@@ -1196,8 +1257,6 @@ public class FstReader extends AbstractSingleDomainRecordReader {
 
         try {
             int signalsProcessed = 0; // Counter for total signals processed in this geometry block
-            int signalsWithData = 0; // Counter for logic signals that have actual data width > 0
-            int realSignals = 0; // Counter for floating-point/real number signals
 
             // Parse signal geometry entries sequentially, continuing from the last geometry handle position
             // FST handle IDs are 1-based indexing, so increment current position to get next handle
@@ -1222,26 +1281,23 @@ public class FstReader extends AbstractSingleDomainRecordReader {
 
                 if (val != 0) {
                     // Non-zero value indicates a logic/digital signal with specified bit width
-                    signalsWithData++;
                     if (val != 0xFFFFFFFFL) {
                         // Standard logic signal - value represents the bit width (1, 8, 32, etc.)
                         fstVar.scale = (int) val; // Store bit width in scale field
                         fstVar.dataType = ISample.DATA_TYPE_LOGIC; // Mark as digital/logic signal type
+                        console.info("    Handle", handle, "Logic signal", fstVar.scale, "bits ");
                     } else {
-                        // Special encoding: 0xFFFFFFFF indicates a zero-length logic signal (no data)
-                        fstVar.scale = 0; // Zero bit width
-
-                        // Still classified as logic type for consistency
-                        fstVar.dataType = ISample.DATA_TYPE_LOGIC;
+                        // Special encoding: 0xFFFFFFFF indicates a zero-length  signal 
+                        fstVar.dataType = ISample.DATA_TYPE_TEXT;
+                        console.info("    Handle", handle, "Text signal");
                     }
-                    console.info("    Handle", handle, ": Logic signal,", fstVar.scale, "bits ");
+
                 } else {
                     // Zero value indicates a real-valued (floating-point) signal
-                    realSignals++;
                     fstVar.dataType = ISample.DATA_TYPE_FLOAT; // Mark as floating-point signal type
 
                     // Note: Real signals use standard 64-bit IEEE 754 double precision
-                    console.info("    Handle", handle, ": Real signal, 64-bit float");
+                    console.info("    Handle", handle, "Real signal, 64-bit float");
                 }
 
                 // Log parsing progress every 100 signals to monitor large geometry blocks
@@ -1255,9 +1311,6 @@ public class FstReader extends AbstractSingleDomainRecordReader {
 
             console.info("  Geometry parsing completed:");
             console.info("    Total signals processed:", signalsProcessed);
-            console.info("    Logic signals (with data):", signalsWithData);
-            console.info("    Real signals (floating-point):", realSignals);
-            console.info("    Signals without data:", signalsProcessed - signalsWithData - realSignals);
             console.info("    Current geometry handle position:", currentGeometryHandle);
 
             // Verify expected signal count matches actual parsed count (data integrity check)
@@ -1327,31 +1380,25 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         long compressedDataLength = (sectionLength - 8) - 8; // Subtract 8 bytes for uncompressed length field
         if (compressedDataLength > 0) {
 
-            // Read the compressed hierarchy data byte-by-byte from the BinaryParseBuffer
-            byte[] compressedData = new byte[(int) compressedDataLength];
-            for (int i = 0; i < compressedDataLength; i++) {
-                compressedData[i] = reader.getByte(); // Sequential byte reads from offset 8+
-            }
-
             // Map FST block type to internal compression algorithm constant for decompression
             int actualCompressionType;
             switch (blockType) {
             case FST_BL_HIER:
-                actualCompressionType = COMPRESSION_GZIP; // Use gzip decompressor
+                actualCompressionType = BinaryParseBuffer.COMPRESSION_GZIP; // Use gzip decompressor
                 break;
             case FST_BL_HIER_LZ4:
-                actualCompressionType = COMPRESSION_LZ4; // Use LZ4 decompressor
+                actualCompressionType = BinaryParseBuffer.COMPRESSION_LZ4; // Use LZ4 decompressor
                 break;
             case FST_BL_HIER_LZ4DUO:
-                actualCompressionType = COMPRESSION_LZ4DUO; // Use dual-stage LZ4 decompressor
+                actualCompressionType = BinaryParseBuffer.COMPRESSION_LZ4DUO; // Use dual-stage LZ4 decompressor
                 break;
             default:
-                actualCompressionType = COMPRESSION_GZIP; // Default fallback to gzip
+                actualCompressionType = BinaryParseBuffer.COMPRESSION_GZIP; // Default fallback to gzip
                 break;
             }
 
             // Decompress the hierarchy data using the appropriate algorithm with expected output size validation
-            byte[] decompressedData = decompressData(compressedData, actualCompressionType, uncompressedLength);
+            byte[] decompressedData = reader.decompressBytes((int)compressedDataLength, actualCompressionType, (int)uncompressedLength);
             if (decompressedData != null) {
                 console.info("  Successfully decompressed hierarchy data");
 
@@ -1424,6 +1471,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                     // Check if this is a variable type entry (FST_VT_* values 0-29 for different signal types)
                     if (tag >= 0 && tag <= 29) {
 
+                        if (scope == null)
+                            Utils.log();
                         // Parse variable/signal definition within current scope
                         parseHierarchyVariable(reader, scope, tag);
                     } else {
@@ -1464,7 +1513,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
      *             If unexpected end of data is encountered
      */
     private IRecord.Scope parseHierarchyScope(BinaryParseBuffer reader, ICell currentScope, int tag) throws ParseException {
-
+        
         // Read scope type identifier (1 byte) indicating the kind of scope (module, task, function, etc.)
         int scopeType = reader.getByte() & 0xFF; // Ensure unsigned byte interpretation
 
@@ -1491,7 +1540,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
      *
      * @param reader
      *            BinaryParseBuffer positioned after the variable type tag
-     * @param currentScope
+     * @param scope
      *            Current scope context to create the variable within
      * @param varType
      *            The variable type tag value (0-29) indicating signal type (FST_VT_VCD_WIRE, FST_VT_VCD_REG, etc.)
@@ -1500,7 +1549,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
      * @throws EOFException
      *             If unexpected end of data is encountered
      */
-    private void parseHierarchyVariable(BinaryParseBuffer reader, ICell currentScope, int varType) throws ParseException {
+    private void parseHierarchyVariable(BinaryParseBuffer reader, ICell scope, int varType) throws ParseException {
 
         // Read variable direction identifier (1 byte) indicating signal direction
         int varDirection = reader.getByte() & 0xFF; // Ensure unsigned byte interpretation
@@ -1545,15 +1594,21 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         FstVariable fstVar = waveformVariables[(int) actualHandle];
         if (fstVar == null) {
 
-            // Create new FstVariable instance for this handle (first time encountering this handle)
             fstVar = new FstVariable();
+            fstVar.handle = (int)actualHandle;
             waveformVariables[(int) actualHandle] = fstVar; // Store in handle-indexed array
             console.info("    ", "  Created new FstVariable for handle: ", actualHandle);
-        } else {
-
-            // Reuse existing FstVariable instance (handle aliasing or duplicate definition)
+            
+        } else if (fstVar.scope ==null){
             console.info("    ", "  Using existing FstVariable for handle: ", actualHandle);
-        }
+        }   else if (fstVar.scope !=null){
+
+            fstVar.shared = true;
+            fstVar = new FstVariable();
+            fstVar.handle = (int)actualHandle;
+            fstVar.shared = true;
+            console.info("    ", "  Created new Alias FstVariable for handle: ", actualHandle);
+        }     
 
         // Parse variable name to extract bit range information if present
         // Format: signal_name[high_bit:low_bit] or signal_name[single_bit]
@@ -1590,7 +1645,13 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         fstVar.name = varName; // Store complete variable name with bit range
         fstVar.description = varTypeName; // Store variable type description (wire, reg, etc.)
         fstVar.tags = null; // Tags currently unused
-        fstVar.scope = currentScope; // Associate variable with current hierarchical scope
+        fstVar.scope = scope; // Associate variable with current hierarchical scope
+        // Add to scope's variable list
+        if (!varsByScope.containsKey(scope))
+            varsByScope.put(scope, new ArrayList<>());
+        if (!varsByScope.get(scope).contains(fstVar))
+            varsByScope.get(scope).add(fstVar);
+
     }
 
     /**
@@ -2105,53 +2166,47 @@ public class FstReader extends AbstractSingleDomainRecordReader {
             // ========================================================================================================================
 
             reader.setPos(frameDataPos);
-            if (frameClen > 0) {
+            if (frameClen > 0 && currentFrameHandle < frameMaxHandle) {
                 byte[] compressedFrameData = new byte[(int) frameClen];
                 reader.getBytes(compressedFrameData);
-                byte[] frameData = frameClen != frameUclen ? decompressData(compressedFrameData, COMPRESSION_ZLIB, frameUclen) : compressedFrameData;
+                byte[] frameData = frameClen != frameUclen ? reader.decompressBytes(compressedFrameData, BinaryParseBuffer.COMPRESSION_ZLIB, (int)frameUclen) : compressedFrameData;
                 if (frameData != null) {
                     // Parse frame initial values inline (refactored from parseFrameInitialValues)
                     console.info("      Parsing initial values for", frameMaxHandle, "signals starting from handle", currentFrameHandle + 1);
-                    try {
-                        console.info("      Frame data size:", frameData.length, "bytes");
-                        int signalsProcessed = 0;
-                        int totalExpectedSize = 0;
-                        int bytePosition = 0;
-                        // Process each signal handle from currentFrameHandle+1 to currentFrameHandle+maxHandle
-                        long startHandle = currentFrameHandle + 1;
-                        long endHandle = currentFrameHandle + frameMaxHandle;
-                        for (long handle = startHandle; handle <= endHandle; handle++) {
-                            // Get the FstVariable for this handle to determine size
-                            if (handle >= waveformVariables.length) {
-                                continue;
-                            }
-                            FstVariable fstVar = waveformVariables[(int) handle];
-                            if (fstVar == null) {
-                                continue;
-                            }
-                            // size in bytes/chars
-                            int size = fstVar.dataType == ISample.DATA_TYPE_FLOAT ? 8 : fstVar.scale;
-                            if (size <= 0) {
-                                continue;
-                            }
-                            totalExpectedSize += size;
-                            // Use the new setInitialValue method to handle this signal
-                            fstVar.setInitialValue(frameData, bytePosition, size);
-                            // Update byte position for next signal
-                            bytePosition += size;
-                            signalsProcessed++;
+                    console.info("      Frame data size:", frameData.length, "bytes");
+                    int signalsProcessed = 0;
+                    int totalExpectedSize = 0;
+                    int bytePosition = 0;
+                    // Process each signal handle from currentFrameHandle+1 to currentFrameHandle+maxHandle
+                    for (long handle = currentFrameHandle + 1; handle <= frameMaxHandle; handle++) {
+                        // Get the FstVariable for this handle to determine size
+                        if (handle >= waveformVariables.length) {
+                            continue;
                         }
-                        // Update current frame handle position for next frame block
-                        currentFrameHandle = endHandle;
-                        // Check if total expected size matches actual frame data size
-                        console.info("      Frame parsing completed:", signalsProcessed, "signals processed");
-                        console.info("      Total expected size:", totalExpectedSize, "bytes");
-                        console.info("      Actual frame data size:", frameData.length, "bytes");
-                        if (totalExpectedSize != frameData.length)
-                            throw new ParseException("Frame parsing size ");
-                    } catch (Exception e) {
-                        throw new ParseException("Failed to parse frame initial values: " + e.getMessage(), e);
+                        FstVariable fstVar = waveformVariables[(int) handle];
+                        if (fstVar == null) {
+                            continue;
+                        }
+                        // size in bytes/chars
+                        int size = fstVar.dataType == ISample.DATA_TYPE_FLOAT ? 8 : fstVar.scale;
+                        if (size <= 0) {
+                            continue;
+                        }
+                        totalExpectedSize += size;
+                        // Use the new setInitialValue method to handle this signal
+                        fstVar.setFrame(frameData, bytePosition, size);
+                        // Update byte position for next signal
+                        bytePosition += size;
+                        signalsProcessed++;
                     }
+                    // Update current frame handle position for next frame block
+                    currentFrameHandle = frameMaxHandle;
+                    // Check if total expected size matches actual frame data size
+                    console.info("      Frame parsing completed:", signalsProcessed, "signals processed");
+                    console.info("      Total expected size:", totalExpectedSize, "bytes");
+                    console.info("      Actual frame data size:", frameData.length, "bytes");
+                    if (totalExpectedSize != frameData.length)
+                        throw new ParseException("Frame parsing size ");
                 } else {
                     throw new ParseException("Failed to decompress frame data");
                 }
@@ -2160,19 +2215,20 @@ public class FstReader extends AbstractSingleDomainRecordReader {
             // ========================================================================================================================
             // Parse time section to get absolute timestamps
             // ========================================================================================================================
+
             long[] timestamps = null;
             reader.setPos((int) timeDataPos);
             if (tsecClen > 0) {
-                byte[] compressedTimeData = new byte[(int) tsecClen];
-                reader.getBytes(compressedTimeData);
-                byte[] timeData = decompressData(compressedTimeData, COMPRESSION_ZLIB, tsecUclen);
+
+                byte[] timeData = reader.decompressBytes((int) tsecClen, tsecClen != tsecUclen ? BinaryParseBuffer.COMPRESSION_ZLIB : BinaryParseBuffer.COMPRESSION_NONE,
+                        (int) tsecUclen);
                 if (timeData != null) {
                     BinaryParseBuffer timeBuffer = new BinaryParseBuffer(timeData);
                     timeBuffer.begin();
                     try {
                         // Parse time section data to extract absolute timestamps
                         timestamps = new long[(int) tsecNitems];
-                        long currentTime = timezero;
+                        long currentTime = timeZero;
                         for (int i = 0; i < tsecNitems && timeBuffer.available() > 0; i++) {
                             // Read time delta using parsePlus (FST varint format)
                             long timeDelta = timeBuffer.parsePlus();
@@ -2198,297 +2254,322 @@ public class FstReader extends AbstractSingleDomainRecordReader {
             // Parse chain section to set offset/length directly in FstVariables
             // ========================================================================================================================
 
-            console.info("      Parsing chain section (", chainClen, "compressed bytes)");
-            if (chainDataPos < 0 || chainDataPos + chainClen > reader.total()) {
-                console.info("      Chain data position invalid - skipping chain parsing");
-            } else {
-                // Read chain data
-                reader.setPos((int) chainDataPos);
-                console.info("      Reading", chainClen, "bytes of chain data from position", chainDataPos);
-                byte[] chainData = new byte[(int) chainClen];
-                reader.getBytes(chainData);
-                console.info("      Read", chainData.length, "bytes of chain data");
-                // Log first few bytes of compressed data
-                StringBuilder hexLog = new StringBuilder();
-                for (int i = 0; i < Math.min(chainData.length, 16); i++) {
-                    hexLog.append(String.format("%02X ", chainData[i] & 0xFF));
-                }
-                console.info("      First", Math.min(chainData.length, 16), "bytes of chain data:", hexLog.toString());
-                BinaryParseBuffer chainReader = new BinaryParseBuffer(chainData);
-                // Parse chain entries directly into FstVariable offset/length members - optimized for performance
-                int idx = 1;
-                int pidx = 0;
-                long pval = 0;
-                // Cache for performance
-                final int maxHandle = (int) vcMaxHandle;
-                // Cache array reference
-                final FstVariable[] vars = waveformVariables;
-                if (blockType == FST_BL_VCDATA_DYN_ALIAS2) {
-                    // DYN_ALIAS2 format with signed varints - optimized loop
-                    long prevAlias = 0;
-                    while (chainReader.hasMoreData() && idx <= maxHandle) {
-                        // Read signed varint (zigzag encoding)
-                        long val = chainReader.parseSPlus();
-                        if ((val & 1) != 0) {
-                            // LSB set: signed delta
-                            // Decode zigzag
-                            long shval = val >> 1;
-                            if (shval > 0) {
-                                // Positive: offset delta - store directly in FstVariable
-                                pval += shval;
-                                if (idx < vars.length && vars[idx] != null) {
-                                    vars[idx].chunkOffset = (int) pval;
-                                }
-                                if (pidx < vars.length && vars[pidx] != null && idx > 0) {
-                                    vars[pidx].chunkLength = (int) (pval - vars[pidx].chunkOffset);
-                                }
-                                pidx = idx++;
-                            } else if (shval < 0) {
-                                // Negative: new alias reference
-                                if (idx < vars.length && vars[idx] != null) {
-                                    vars[idx].chunkOffset = 0;
-                                    vars[idx].chunkLength = (int) (prevAlias = shval);
-                                }
-                                idx++;
-                            } else {
-                                // Zero: reuse previous alias
-                                if (idx < vars.length && vars[idx] != null) {
-                                    vars[idx].chunkOffset = 0;
-                                    vars[idx].chunkLength = (int) prevAlias;
-                                }
-                                idx++;
-                            }
-                        } else {
-                            // LSB clear: skip run - bulk operation for performance
-                            long skipCount = val >> 1;
-                            for (int i = 0; i < skipCount && idx <= maxHandle; i++) {
-                                if (idx < vars.length && vars[idx] != null) {
-                                    vars[idx].chunkOffset = 0;
-                                    vars[idx].chunkLength = 0;
-                                }
-                                idx++;
-                            }
-                        }
-                    }
-                } else {
-                    // DYN_ALIAS format with regular varints - optimized loop
-                    while (chainReader.hasMoreData() && idx <= maxHandle) {
-                        long val = chainReader.parsePlus();
-                        if (val == 0) {
-                            // Alias pair: val==0 followed by target handle
-                            long aliasTarget = chainReader.parsePlus();
-                            if (idx < vars.length && vars[idx] != null) {
-                                vars[idx].chunkOffset = 0;
-                                vars[idx].chunkLength = (int) (-aliasTarget);
-                            }
-                            idx++;
-                        } else if ((val & 1) != 0) {
-                            // Offset delta - store directly in FstVariable
-                            pval += (val >> 1);
+            console.info("      Parsing chain section", chainClen, "(compressed bytes)");
+            if (chainDataPos < 0 || chainDataPos + chainClen > reader.total())
+                throw new ParseException("Chain data position invalid");
+
+            // Read chain data
+            final FstVariable[] vars = waveformVariables;
+            reader.setPos((int) chainDataPos);
+            console.info("      Reading", chainClen, "bytes of chain data from position", chainDataPos);
+            byte[] chainData = reader.getBytes((int) chainClen);
+            BinaryParseBuffer chainReader = new BinaryParseBuffer(chainData);
+
+            // Parse chain entries directly into FstVariable offset/length members - optimized for performance
+            int idx = 1;
+            int pidx = 0;
+            long pval = 0;
+
+            // DYN_ALIAS2 format with signed varints - optimized loop
+            if (blockType == FST_BL_VCDATA_DYN_ALIAS2) {
+
+                long prevAlias = 0;
+                while (chainReader.hasMoreData() && idx <= vcMaxHandle) {
+
+                    // Chec bit 1
+                    if ((chainReader.peekByte() & 1) != 0) {
+
+                        // signed varint
+                        long shval = chainReader.parseSPlus() >> 1;
+
+                        // Positive: offset delta - store directly in FstVariable
+                        if (shval > 0) {
+                            pval += shval;
                             if (idx < vars.length && vars[idx] != null) {
                                 vars[idx].chunkOffset = (int) pval;
+                                vars[idx].aliases = null;
                             }
                             if (pidx < vars.length && vars[pidx] != null && idx > 0) {
                                 vars[pidx].chunkLength = (int) (pval - vars[pidx].chunkOffset);
                             }
                             pidx = idx++;
-                        } else {
-                            // Skip count - bulk operation for performance
-                            long skipCount = val >> 1;
-                            for (int i = 0; i < skipCount && idx <= maxHandle; i++) {
-                                if (idx < vars.length && vars[idx] != null) {
-                                    vars[idx].chunkOffset = 0;
-                                    vars[idx].chunkLength = 0;
-                                }
-                                idx++;
-                            }
                         }
-                    }
-                }
-                // Set final entry - store end of VC data
-                if (pidx < vars.length && vars[pidx] != null && pidx < idx) {
-                    vars[pidx].chunkLength = (int) (vcDataSize - vars[pidx].chunkOffset + 2 /* ???? */);
-                }
-                // Optimized logging - only log summary to avoid performance impact
-                console.info("      Chain parsing completed:", idx, "entries processed");
-                console.info("      Chain table summary (first 10 entries):");
-                for (int i = 0; i < Math.min(idx, 10); i++) {
-                    if (i < vars.length && vars[i] != null) {
-                        int offset = vars[i].chunkOffset;
-                        int length = vars[i].chunkLength;
-                        if (offset == 0 && length <= 0) {
-                            console.info("        [", i, "]: NO_DATA (offset=0, length=", length, ")");
-                        } else if (offset == 0) {
-                            console.info("        [", i, "]: ALIAS (offset=0, original_length=", length, ")");
-                        } else {
-                            console.info("        [", i, "]: DATA (offset=", offset, ", length=", length, ")");
-                        }
-                    }
-                }
-                if (idx > 10) {
-                    console.info("        ... and", (idx - 10), "more entries");
-                }
-                // chainReader.close();
-                // Populate aliases lists for variables with real data - single pass optimization
-                for (int i = 0; i <= maxHandle && i < vars.length; i++) {
-                    FstVariable var = vars[i];
-                    if (var != null && var.chunkLength < 0) {
-                        // This is an alias - add to target's aliases list
-                        int targetHandle = Math.abs(var.chunkLength);
-                        if (targetHandle < vars.length && vars[targetHandle] != null && vars[targetHandle].chunkOffset >= 0
-                                && vars[targetHandle].chunkLength > 0) {
-                            FstVariable targetVar = vars[targetHandle];
-                            if (targetVar.aliases == null) {
-                                targetVar.aliases = new ArrayList<>();
-                                // Add self first
-                                targetVar.aliases.add(targetHandle);
-                            }
-                            // Add alias
-                            targetVar.aliases.add(i);
-                        }
-                    }
-                }
-                // ========================================================================================================================
-                // Parse Value Change (VC) Data - Per-signal compressed chunks
-                // ========================================================================================================================
 
-                console.info("      Parsing VC data section (", vcDataStartPos, vcDataSize, "bytes)");
-                // Use the actual VC data start position captured after reading VC header
-                reader.setPos((int) vcDataStartPos);
-                // Determine compression type based on pack type
-                int signalCompressionType;
-                switch (packTypeChar) {
-                case 'Z':
-                    signalCompressionType = COMPRESSION_ZLIB;
-                    break;
-                case '4':
-                    signalCompressionType = COMPRESSION_LZ4;
-                    break;
-                case 'F':
-                    signalCompressionType = COMPRESSION_FASTLZ;
-                    break;
-                default:
-                    signalCompressionType = COMPRESSION_ZLIB;
-                    break;
-                }
-                if (timestamps != null && timestamps.length > 0) {
-                    console.info("      Processing signals with data (offset > 0 && length > 0)");
-                    int signalsProcessed = 0;
-                    int changesProcessed = 0;
-                    // Iterate over variables and process only those with actual data
-                    for (int varIdx = 0; varIdx <= maxHandle && varIdx < vars.length; varIdx++) {
-                        FstVariable var = vars[varIdx];
-                        if (var != null && var.chunkOffset > 0 && var.chunkLength > 0) {
-                            signalsProcessed++;
-                            console.info("        Processing signal[", varIdx, "]: offset=", var.chunkOffset, ", length=", var.chunkLength);
-                            try {
-                                // Seek to this signal's data chunk
-                                long signalDataPos = vcDataStartPos + var.chunkOffset - 1 /* ??? */;
-                                reader.setPos((int) signalDataPos);
-                                // Read uncompressed length as varint (first part of the chunk)
-                                long uncompressedLength = reader.parsePlus();
-                                // Calculate remaining compressed data size
-                                int compressedDataSize = var.chunkLength - BinaryParseBuffer.plusLen(uncompressedLength);
-                                // Handle compressed vs uncompressed data
-                                byte[] decompressedChunk;
-                                if (uncompressedLength == 0) {
-                                    // No compression - read remaining data directly
-                                    decompressedChunk = new byte[compressedDataSize];
-                                    reader.getBytes(decompressedChunk);
-                                    console.info("          Read", decompressedChunk.length, "bytes of uncompressed data");
-                                } else {
-                                    // Compressed data - read and decompress
-                                    byte[] compressedData = new byte[compressedDataSize];
-                                    reader.getBytes(compressedData);
-                                    console.info("          Read", compressedData.length, "bytes of compressed data, decompressing to",
-                                            uncompressedLength);
-                                    decompressedChunk = decompressData(compressedData, signalCompressionType, uncompressedLength);
-                                    if (decompressedChunk == null)
-                                        throw new ParseException("Failed to decompress signal data");
-                                }
-                                // Parse individual value changes from decompressed data
-                                BinaryParseBuffer chunkReader = new BinaryParseBuffer(decompressedChunk);
-                                int valueChangesInThisSignal = 0;
-                                int timeIndex = 0;
-                                while (chunkReader.hasMoreData()) {
-                                    try {
-                                        // Read the time/format varint
-                                        long vli = chunkReader.parsePlus();
-                                        // Determine signal type and parse accordingly (based on C reference fstapi.c)
-                                        if (var.scale == 1 && var.dataType == ISample.DATA_TYPE_LOGIC) {
-                                            // Case 1: Single-bit signals (0-bit or 1-bit)
-                                            // 1-bit signal with 2-state or 4-state values
-                                            long shcnt = 2L << (vli & 1);
-                                            timeIndex += vli >> shcnt;
-                                            var.writeChange1Bit(timestamps[timeIndex], (byte) ((vli & 1) == 0 ? vli & 0x03 : vli & 0x0f));
-                                            valueChangesInThisSignal++;
-                                        } else if (var.scale == 0) {
-                                            // Case 2: Variable-length signals (FST_VT_GEN_STRING, etc.)
-                                            timeIndex += vli >> 1;
-                                            // Read value length
-                                            long valueLength = chunkReader.parsePlus();
-                                            // Read value bytes directly from array
-                                            int currentPos = chunkReader.pos();
-                                            var.writeChange(timestamps[timeIndex], false, decompressedChunk, currentPos, (int) valueLength);
-                                            // Skip past the value bytes
-                                            chunkReader.skipBytes((int) valueLength);
-                                            valueChangesInThisSignal++;
-                                        } else if (var.dataType == ISample.DATA_TYPE_LOGIC && var.scale > 1) {
-                                            timeIndex += vli >> 1;
-                                            // Read value length
-                                            long valueLength = var.scale;
-                                            boolean bitdata = false;
-                                            if ((vli & 1) == 0) {
-                                                // Round up to next byte boundary
-                                                valueLength = (valueLength + 7) / 8;
-                                                bitdata = true;
-                                            }
-                                            // Read value bytes directly from array
-                                            int currentPos = chunkReader.pos();
-                                            var.writeChange(timestamps[timeIndex], bitdata, decompressedChunk, currentPos, (int) valueLength);
-                                            // Skip past the value bytes
-                                            chunkReader.skipBytes((int) valueLength);
-                                            valueChangesInThisSignal++;
-                                        } else if (var.dataType == ISample.DATA_TYPE_FLOAT) {
-                                            int currentPos = chunkReader.pos();
-                                            timeIndex += vli >> 1;
-                                            var.writeChange(timestamps[timeIndex], false, decompressedChunk, currentPos, 8);
-                                            // Skip past the value bytes
-                                            chunkReader.skipBytes(8);
-                                        }
-                                    } catch (Exception e) {
-                                        throw new ParseException("Error parsing value change", e);
-                                    }
-                                }
-                                // chunkReader.close();
-                                changesProcessed += valueChangesInThisSignal;
-                                console.info("          Parsed", valueChangesInThisSignal, "value changes for signal[", varIdx, "]");
-                                // Report progress for large datasets
-                                if (signalsProcessed % 100 == 0) {
-                                    console.info("          Processed", signalsProcessed, "signals so far...");
-                                }
-                            } catch (Exception e) {
-                                console.error("        Error processing signal[", varIdx, "]:", e.getMessage());
-                                // Continue with next signal
+                        // Negative: new alias reference
+                        else if (shval < 0) {
+
+                            if (idx < vars.length && vars[idx] != null) {
+                                vars[idx].chunkOffset = 0;
+                                vars[idx].chunkLength = (int) (prevAlias = shval);
+                                vars[idx].aliases = null;
                             }
+                            idx++;
+                        }
+
+                        // Zero: reuse previous alias
+                        else {
+
+                            if (idx < vars.length && vars[idx] != null) {
+                                vars[idx].chunkOffset = 0;
+                                vars[idx].chunkLength = (int) prevAlias;
+                                vars[idx].aliases = null;
+                            }
+                            idx++;
                         }
                     }
-                    console.info("      VC data parsing completed:");
-                    console.info("        Signals with data processed:", signalsProcessed);
-                    console.info("        Total value changes processed:", changesProcessed);
 
-                    // Assert frame initialization
-                    if (frameClen > 0)
-                        for (int varIdx = 0; varIdx <= maxHandle && varIdx < vars.length; varIdx++) {
-                            FstVariable var = vars[varIdx];
-                            if (var != null)
-                                var.assertInitialValue();
+                    // LBulk operation for performance
+                    else {
+
+                        long skipCount = chainReader.parsePlus() >> 1;
+                        for (int i = 0; i < skipCount && idx <= vcMaxHandle; i++) {
+                            if (idx < vars.length && vars[idx] != null) {
+                                vars[idx].chunkOffset = 0;
+                                vars[idx].chunkLength = 0;
+                                vars[idx].aliases = null;
+                            }
+                            idx++;
                         }
-                } else {
-                    console.info("      No timestamps available - skipping VC data parsing");
+                    }
                 }
             }
+
+            // DYN_ALIAS format with regular varints - optimized loop
+            else {
+                while (chainReader.hasMoreData() && idx <= vcMaxHandle) {
+                    long val = chainReader.parsePlus();
+
+                    // Alias pair: val==0 followed by target handle
+                    if (val == 0) {
+                        long aliasTarget = chainReader.parsePlus();
+                        if (idx < vars.length && vars[idx] != null) {
+                            vars[idx].chunkOffset = 0;
+                            vars[idx].chunkLength = (int) (-aliasTarget);
+                        }
+                        idx++;
+                    }
+
+                    // Offset delta - store directly in FstVariable
+                    else if ((val & 1) != 0) {
+                        pval += (val >> 1);
+                        if (idx < vars.length && vars[idx] != null) {
+                            vars[idx].chunkOffset = (int) pval;
+                        }
+                        if (pidx < vars.length && vars[pidx] != null && idx > 0) {
+                            vars[pidx].chunkLength = (int) (pval - vars[pidx].chunkOffset);
+                        }
+                        pidx = idx++;
+                    }
+
+                    // Skip count - bulk operation for performance
+                    else {
+
+                        long skipCount = val >> 1;
+                        for (int i = 0; i < skipCount && idx <= vcMaxHandle; i++) {
+                            if (idx < vars.length && vars[idx] != null) {
+                                vars[idx].chunkOffset = 0;
+                                vars[idx].chunkLength = 0;
+                            }
+                            idx++;
+                        }
+                    }
+                }
+            }
+
+            // Set final entry - store end of VC data
+            if (pidx < vars.length && vars[pidx] != null && pidx < idx) {
+                vars[pidx].chunkLength = (int) (vcDataSize - vars[pidx].chunkOffset + 2 /* ???? */);
+            }
+
+            // Only log summary to avoid performance impact
+            console.info("      Chain parsing completed:", idx, "entries processed");
+            for (int i = 0; i < Math.min(idx, 100); i++) {
+                if (i < vars.length && vars[i] != null) {
+                    int offset = vars[i].chunkOffset;
+                    int length = vars[i].chunkLength;
+                    if (offset == 0 && length <= 0) {
+                        console.info("        [", i, "]: NO_DATA (offset=0, length=", length, ")", vars[i].name);
+                    } else if (offset == 0) {
+                        console.info("        [", i, "]: ALIAS (offset=0, original_length=", length, ")", vars[i].name);
+                    } else {
+                        console.info("        [", i, "]: DATA (offset=", offset, ", length=", length, ")", vars[i].name);
+                    }
+                }
+            }
+            if (idx > 10) {
+                console.info("        ... and", (idx - 10), "more entries");
+            }
+
+            // Populate aliases lists for variables with real data - single pass optimization
+            for (int i = 0; i <= vcMaxHandle && i < vars.length; i++) {
+                FstVariable var = vars[i];
+                if (var != null && var.chunkLength < 0) {
+                    // This is an alias - add to target's aliases list
+                    int targetHandle = Math.abs(var.chunkLength);
+                    if (targetHandle < vars.length && vars[targetHandle] != null && vars[targetHandle].chunkOffset >= 0
+                            && vars[targetHandle].chunkLength > 0) {
+                        FstVariable targetVar = vars[targetHandle];
+                        if (targetVar.aliases == null)
+                            targetVar.aliases = new ArrayList<>();
+                        // Add alias
+                        targetVar.aliases.add(i);
+                    }
+                }
+            }
+            // ========================================================================================================================
+            // Parse Value Change (VC) Data - Per-signal compressed chunks
+            // ========================================================================================================================
+
+            // Use the actual VC data start position captured after reading VC header
+            console.info("      Parsing VC data section", vcDataStartPos, vcDataSize, "(bytes)");
+            reader.setPos((int) vcDataStartPos);
+
+            // Determine compression type based on pack type
+            int signalCompressionType;
+            switch (packTypeChar) {
+            case 'Z':
+                signalCompressionType = BinaryParseBuffer.COMPRESSION_ZLIB;
+                break;
+            case '4':
+                signalCompressionType = BinaryParseBuffer.COMPRESSION_LZ4;
+                break;
+            case 'F':
+                signalCompressionType = BinaryParseBuffer.COMPRESSION_FASTLZ;
+                break;
+            default:
+                signalCompressionType = BinaryParseBuffer.COMPRESSION_ZLIB;
+                break;
+            }
+
+            // Can do only with timestamps
+            if (timestamps != null && timestamps.length > 0) {
+                console.info("      Processing signals with data (offset > 0 && length > 0)");
+                int signalsProcessed = 0;
+                int changesProcessed = 0;
+                // Iterate over variables and process only those with actual data
+                for (int varIdx = 0; varIdx <= vcMaxHandle && varIdx < vars.length; varIdx++) {
+                    FstVariable var = vars[varIdx];
+                    if (var != null && var.chunkOffset > 0 && var.chunkLength > 0) {
+                        signalsProcessed++;
+                        console.info("        Processing signal[", varIdx, "]: offset=", var.chunkOffset, ", length=", var.chunkLength);
+
+                        // Seek to this signal's data chunk
+                        long signalDataPos = vcDataStartPos + var.chunkOffset - 1 /* ??? */;
+                        reader.setPos((int) signalDataPos);
+                        // Read uncompressed length as varint (first part of the chunk)
+                        long uncompressedLength = reader.parsePlus();
+                        // Calculate remaining compressed data size
+                        int compressedDataSize = var.chunkLength - BinaryParseBuffer.plusLen(uncompressedLength);
+                        // Handle compressed vs uncompressed data
+                        byte[] decompressedChunk;
+                        if (uncompressedLength == 0) {
+                            // No compression - read remaining data directly
+                            decompressedChunk = new byte[compressedDataSize];
+                            reader.getBytes(decompressedChunk);
+                            console.info("          Read", decompressedChunk.length, "bytes of uncompressed data");
+                        } else {
+                            // Compressed data - read and decompress
+                            byte[] compressedData = new byte[compressedDataSize];
+                            reader.getBytes(compressedData);
+                            console.info("          Read", compressedData.length, "bytes of compressed data, decompressing to", uncompressedLength);
+                            decompressedChunk = reader.decompressBytes(compressedData, signalCompressionType, (int)uncompressedLength);
+                            if (decompressedChunk == null)
+                                throw new ParseException("Failed to decompress signal data");
+                        }
+                        // Parse individual value changes from decompressed data
+                        BinaryParseBuffer chunkReader = new BinaryParseBuffer(decompressedChunk);
+                        int valueChangesInThisSignal = 0;
+                        int timeIndex = 0;
+                        while (chunkReader.hasMoreData()) {
+                            // Read the time/format varint
+                            long vli = chunkReader.parsePlus();
+                            // Determine signal type and parse accordingly (based on C reference fstapi.c)
+                            if (var.scale == 1 && var.dataType == ISample.DATA_TYPE_LOGIC) {
+                                // Case 1: Single-bit signals (0-bit or 1-bit)
+                                // 1-bit signal with 2-state or 4-state values
+                                long shcnt = 2L << (vli & 1);
+                                timeIndex += vli >> shcnt;
+                                if (var.aliases != null)
+                                    for (int alias : var.aliases)
+                                        waveformVariables[alias].writeChange1Bit(timestamps[timeIndex],
+                                                (byte) ((vli & 1) == 0 ? vli & 0x03 : vli & 0x0f));
+                                var.writeChange1Bit(timestamps[timeIndex], (byte) ((vli & 1) == 0 ? vli & 0x03 : vli & 0x0f));
+                                valueChangesInThisSignal++;
+                            } else if (var.dataType == ISample.DATA_TYPE_TEXT) {
+                                // Case 2: Variable-length signals (FST_VT_GEN_STRING, etc.)
+                                timeIndex += vli >> 1;
+                                // Read value length
+                                long valueLength = chunkReader.parsePlus();
+                                // Read value bytes directly from array
+                                int currentPos = chunkReader.pos();
+                                if (var.aliases != null)
+                                    for (int alias : var.aliases)
+                                        waveformVariables[alias].writeChange(timestamps[timeIndex], false, decompressedChunk, currentPos,
+                                                (int) valueLength);
+                                var.writeChange(timestamps[timeIndex], false, decompressedChunk, currentPos, (int) valueLength);
+                                // Skip past the value bytes
+                                chunkReader.skipBytes((int) valueLength);
+                                valueChangesInThisSignal++;
+                            } else if (var.dataType == ISample.DATA_TYPE_LOGIC && var.scale > 1) {
+
+                                timeIndex += vli >> 1;
+                                // Read value length
+                                long valueLength = var.scale;
+                                boolean bitdata = false;
+                                if ((vli & 1) == 0) {
+                                    // Round up to next byte boundary
+                                    valueLength = (valueLength + 7) / 8;
+                                    bitdata = true;
+                                }
+                                // Read value bytes directly from array
+                                int currentPos = chunkReader.pos();
+                                chunkReader.skipBytes((int) valueLength);
+                                if (var.aliases != null)
+                                    for (int alias : var.aliases)
+                                        waveformVariables[alias].writeChange(timestamps[timeIndex], bitdata, decompressedChunk, currentPos,
+                                                (int) valueLength);
+                                var.writeChange(timestamps[timeIndex], bitdata, decompressedChunk, currentPos, (int) valueLength);
+                                // Skip past the value bytes
+
+                                valueChangesInThisSignal++;
+                            } else if (var.dataType == ISample.DATA_TYPE_FLOAT) {
+                                int currentPos = chunkReader.pos();
+                                timeIndex += vli >> 1;
+                                if (var.aliases != null)
+                                    for (int alias : var.aliases)
+                                        waveformVariables[alias].writeChange(timestamps[timeIndex], false, decompressedChunk, currentPos, 8);
+                                var.writeChange(timestamps[timeIndex], false, decompressedChunk, currentPos, 8);
+                                // Skip past the value bytes
+                                chunkReader.skipBytes(8);
+                            }
+                        }
+                        // chunkReader.close();
+                        changesProcessed += valueChangesInThisSignal;
+                        console.info("          Parsed", valueChangesInThisSignal, "value changes for signal[", varIdx, "]");
+                        // Report progress for large datasets
+                        if (signalsProcessed % 100 == 0) {
+                            console.info("          Processed", signalsProcessed, "signals so far...");
+                        }
+                    }
+                }
+                console.info("      VC data parsing completed:");
+                console.info("        Signals with data processed:", signalsProcessed);
+                console.info("        Total value changes processed:", changesProcessed);
+
+                // Assert frame initialization
+                if (frameClen > 0)
+                    for (int varIdx = 0; varIdx <= vcMaxHandle && varIdx < vars.length; varIdx++) {
+                        FstVariable var = vars[varIdx];
+                        if (var != null)
+                            var.assertInitialValue();
+                    }
+            } else {
+                console.info("      No timestamps available - skipping VC data parsing");
+            }
+
         } catch (Exception e) {
+            if (e instanceof ParseException)
+                throw e;
             throw new ParseException("Failed to parse dynamic alias block: " + e.getMessage(), e);
         }
     }
@@ -2515,7 +2596,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
     // ========================================================================================================================
 
     private void parseZWrapperBlock(BinaryParseBuffer reader, long dataSize) throws ParseException, EOFException {
-        console.info("--- ZWRAPPER BLOCK ---");
+        console.info("parseZWrapperBlock");
         reader.getLongBE(8, false); // read uncompressed length - ignoring as we use a stream
         dataSize -= 8;
         if (dataSize > 0) {
@@ -2537,115 +2618,4 @@ public class FstReader extends AbstractSingleDomainRecordReader {
             console.info("  No wrapper data to process");
         }
     }
-
-    // ========================================================================================================================
-    // Compression Support Methods
-    // ========================================================================================================================
-    /**
-     * Unified decompression method that supports all FST compression formats. Handles decompression for various data types in FST files including: -
-     * Zlib (Deflate) for frame and geometry data - Gzip for hierarchy data - LZ4 for hierarchy data - LZ4DUO (dual-stage LZ4) for hierarchy data
-     *
-     * @param compressedData
-     *            The compressed data bytes
-     * @param compressionType
-     *            The compression type (use COMPRESSION_* constants)
-     * @param uncompressedSize
-     *            Expected size after decompression
-     * @param logPrefix
-     *            Optional prefix for log messages (for better readability in different contexts)
-     * @return Decompressed data or null if decompression fails
-     */
-    private byte[] decompressData(byte[] compressedData, int compressionType, long uncompressedSize) throws ParseException {
-        if (compressedData == null || uncompressedSize <= 0 || uncompressedSize > Integer.MAX_VALUE) {
-            throw new ParseException("Invalid compressed data or size: " + uncompressedSize);
-        }
-        byte[] decompressed = new byte[(int) uncompressedSize];
-        try {
-            switch (compressionType) {
-            case COMPRESSION_NONE:
-                if (compressedData.length != uncompressedSize) {
-                    throw new ParseException("Uncompressed data size mismatch: expected " + uncompressedSize + " got " + compressedData.length);
-                }
-                System.arraycopy(compressedData, 0, decompressed, 0, compressedData.length);
-                break;
-            case COMPRESSION_ZLIB:
-                Inflater inflater = new Inflater();
-                inflater.setInput(compressedData);
-                int resultLength = inflater.inflate(decompressed);
-                if (inflater.needsInput() && resultLength < uncompressedSize) {
-                    inflater.end();
-                    throw new ParseException("Inflater needs more input but no more data available");
-                }
-                inflater.end();
-                if (resultLength != uncompressedSize) {
-                    if (resultLength > 0 && resultLength < uncompressedSize) {
-                        byte[] partialResult = new byte[resultLength];
-                        System.arraycopy(decompressed, 0, partialResult, 0, resultLength);
-                        return partialResult;
-                    }
-                    throw new ParseException("Decompression size mismatch. Expected: " + uncompressedSize + " got: " + resultLength);
-                }
-                break;
-            case COMPRESSION_GZIP:
-                try (ByteArrayInputStream bis = new ByteArrayInputStream(compressedData); GZIPInputStream gzis = new GZIPInputStream(bis)) {
-                    int totalRead = 0;
-                    int bytesRead;
-                    while (totalRead < decompressed.length && (bytesRead = gzis.read(decompressed, totalRead, decompressed.length - totalRead)) > 0) {
-                        totalRead += bytesRead;
-                    }
-                    if (totalRead != uncompressedSize) {
-                        throw new ParseException("Gzip size mismatch: expected " + uncompressedSize + " got " + totalRead);
-                    }
-                }
-                break;
-            case COMPRESSION_LZ4:
-                try {
-                    IndexedByteArray src = new IndexedByteArray(compressedData, 0);
-                    IndexedByteArray dst = new IndexedByteArray(decompressed, 0);
-                    LZ4Codec codec = new LZ4Codec();
-                    if (!codec.inverse(src, dst)) {
-                        throw new ParseException("LZ4 decompression failed");
-                    }
-                } catch (Exception e) {
-                    throw new ParseException("LZ4 decompression error: " + e.getMessage(), e);
-                }
-                break;
-            case COMPRESSION_LZ4DUO:
-                try {
-                    int intermediateSize = compressedData.length * 4;
-                    byte[] intermediate = new byte[intermediateSize];
-                    IndexedByteArray src1 = new IndexedByteArray(compressedData, 0);
-                    IndexedByteArray dst1 = new IndexedByteArray(intermediate, 0);
-                    LZ4Codec codec1 = new LZ4Codec();
-                    if (!codec1.inverse(src1, dst1)) {
-                        throw new ParseException("LZ4DUO first stage decompression failed");
-                    }
-                    IndexedByteArray src2 = new IndexedByteArray(intermediate, 0);
-                    IndexedByteArray dst2 = new IndexedByteArray(decompressed, 0);
-                    LZ4Codec codec2 = new LZ4Codec();
-                    if (!codec2.inverse(src2, dst2)) {
-                        throw new ParseException("LZ4DUO second stage decompression failed");
-                    }
-                } catch (Exception e) {
-                    throw new ParseException("LZ4DUO decompression error: " + e.getMessage(), e);
-                }
-                break;
-            case COMPRESSION_FASTLZ:
-                try {
-                    FastLZ.decompress(compressedData, decompressed);
-                } catch (Exception e) {
-                    throw new ParseException("FastLZ decompression error: " + e.getMessage(), e);
-                }
-                break;
-            default:
-                throw new ParseException("Unsupported compression type: " + compressionType);
-            }
-            return decompressed;
-        } catch (java.util.zip.DataFormatException e) {
-            throw new ParseException("Data format error during decompression: " + e.getMessage(), e);
-        } catch (Exception e) {
-            throw new ParseException("Decompression failed: " + e.getMessage(), e);
-        }
-    }
-
 }

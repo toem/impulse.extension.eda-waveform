@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-    <extension point="de.toem.toolkits.general.serializer">\
-        <serializer class="de.toem.impulse.extension.eda.waveform.vcd.VcdReader"/>\
+    <extension point="de.toem.toolkits.general.serializer">
+        <serializer class="de.toem.impulse.extension.eda.waveform.vcd.VcdReader"/>
+        <serializer class="de.toem.impulse.extension.eda.waveform.fst.FstReader"/>
+        <serializer class="de.toem.impulse.extension.eda.waveform.fst.FstNativeReader"/>
+        <serializer class="de.toem.impulse.extension.eda.waveform.fsdb.FsdbNativeReader"/>        
     </extension>
-    <extension point="de.toem.toolkits.general.serializer">\
-        <serializer class="de.toem.impulse.extension.eda.waveform.fst.FstReader"/>\
-    </extension>
+<extension
+	point="de.toem.toolkits.general.doc">
+	  <book
+	  		id="de.toem.impulse.doc.eda-waveform"
+	        uri="help:///impulse-extension/eda-waveform/"
+	        chapters="fst-format.md, fst-native-reader.md, fst-reader.md, vcd-format.md, vcd-reader.md"
+	        type="taggedMd"
+	        path="/doc/">
+	  </book>			  	  		  		
+</extension>
 </plugin>
 

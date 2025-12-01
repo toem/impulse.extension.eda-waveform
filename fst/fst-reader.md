@@ -34,7 +34,7 @@ This serializer supports:
 ## Properties
 
 **Signal Selection Properties**
-- **Include**: Regular expression pattern to include specific signals during import. Only signals matching this pattern will be imported into the waveform viewer.
+- **Include**: Regular expression pattern to include specific signals during import. Only signals matching this pattern will be imported.
 - **Exclude**: Regular expression pattern to exclude specific signals during import. Signals matching this pattern will be filtered out and not imported.
 
 **Time Range and Transformation Properties**
@@ -44,6 +44,7 @@ This serializer supports:
 - **Dilate**: Time scaling factor to stretch or compress the temporal dimension of the waveform. Values > 1.0 slow down time, values < 1.0 speed up time. Applied after delay transformation using formula: (time + delay) * dilate.
 
 **Structural Organization Properties**
+- **Resolve Hierarchy**: Organize signals into nested scopes by splitting their names using a regular expression. The regex defines how names are divided into hierarchical parts, with the last part becoming the signal name (e.g., `base.draft.xy` split by `\\.` creates `base/draft/xy`). Useful for records without explicit scopes but structured names. Use cautiously if scopes already exist to avoid redundancy or conflicts.
 - **Resolve Vectors**: Enable automatic grouping and resolution of multi-bit vector signals based on bit indices and signal naming conventions.
 - **Keep empty scopes**: Preserve empty hierarchical scopes in the signal tree structure even when they contain no actual signals or variables.
 
@@ -51,19 +52,22 @@ This serializer supports:
 The parser integrates with impulse's console logging system, providing configurable verbosity levels for diagnostic output during the import process. Console properties control the level of detail in parsing progress reports, timing statistics, and error information.
 
 ## Format
-For a detailed description of the VCD file format, refer to [fst-format.md](fst-format.md).
+For a detailed description of the FST file format, refer to [fst-format.md](fst-format.md).
 
 ## Known Limitations
 
 - Still in experimental status
-- No lazy mode
 - Cant resolve vectors from single bits
 - Not performance improved
-- Not all properties have been implemented, eg Delay, Dilate,Resolve Vectors
 - Advanced or writer-specific metadata blocks may be recognized but not fully interpreted by the reader; such content is safely ignored.
 - Blackout/dump-control ranges (if present) are parsed for timing context but don’t alter imported samples.
-- Entire-file compression wrappers (rare) may require pre-decompression outside the reader.
 - Origiginal FST_BL_VCDATA blocks are not handled, just DYN_ALIAS and DYN_ALIAS2
+
+## Sources and Customization
+
+The reader implementations support conversion to a Custom-based block. This feature allows users to create a new Custom functional block initialized with the same implementation as the singleton. Users can then fix issues or enhance the functionality as needed, providing a path for customization and extension. You may modify, fix, and extend it to fit specific workflows, provided all changes comply with your end user license (EULA). 
+
+To do so, open the reader's preferences and select "Create custom block". A new custom block is created with the full implementation. To use it, disable the original reader or increase the custom block's priority by moving it higher in the list. To edit the custom block, open its preferences and select "Open Editor". Changes take effect immediately upon reload. This enables advanced users to handle proprietary variants, implement custom filtering logic, add specialized preprocessing, integrate with external tools, or fix compatibility issues with specific simulators. 
 
 ## Implementation Details
 
@@ -123,12 +127,4 @@ The header provides the global timescale and optional timezero offset. Within ea
 ### Error Handling and Robustness
 
 The parser includes detailed error contexts (block kind/offset, section boundaries) to help diagnose malformed files. It validates consistency across header/geometry/hierarchy (e.g., handle bounds and widths). Resources are cleaned up on cancellation or failures.
-
-### Integration Points
-
-The reader ties into impulse’s:
-- Progress reporting and cancellation (for long imports)
-- Console logging (configurable verbosity)
-- Sample writers (logic and float) for efficient storage and retrieval
-- Property model (include/exclude, time range, scope preservation)
 

@@ -1,3 +1,4 @@
+//package de.toem.impulse.extension.eda.waveform.fsdb
 /*******************************************************************************
  * Copyright (c) 2012-2017 toem
  *
@@ -19,7 +20,7 @@
 #include <errno.h>
 #include <map>
 #include <time.h>
-#include "flux.h"
+#include "flx.h"
 
 #ifdef _WIN32
 #include <io.h>
@@ -38,6 +39,9 @@ flxTrace trace;
 unsigned maxSignals;
 unsigned maxScopes;
 flxid currentScope;
+flxdomain start;
+flxdomain end;
+flxdomain zero;
 
 int64_t timespecDiff(struct timespec *timeA_p, struct timespec *timeB_p) {
 	return ((timeA_p->tv_sec * 1000000000) + timeA_p->tv_nsec) - ((timeB_p->tv_sec * 1000000000) + timeB_p->tv_nsec);
@@ -49,7 +53,7 @@ int64_t timespecDiff(struct timespec *timeA_p, struct timespec *timeB_p) {
 
 static void traceScopeBase(flxtext name, flxtext description) {
 	flxid nextScope = maxSignals + maxScopes;
-	flxAddScope(trace, nextScope, currentScope, name, description);
+	flxAddScope(trace, nextScope, currentScope, name, description, NULL);
 	currentScope = nextScope;
 	maxScopes++;
 }
@@ -127,7 +131,7 @@ static void traceScope(fsdbTreeCBDataScope* scope, void *user) {
 static void traceVar(fsdbTreeCBDataVar *var, void *user) {
 
 	flxtext description;
-	flxbyte type = FLX_TYPE_LOGIC;
+	flxbyte type = FLX_DATA_TYPE_LOGIC;
 
 	switch (var->type) {
 	case FSDB_VT_VCD_EVENT:
@@ -143,7 +147,7 @@ static void traceVar(fsdbTreeCBDataVar *var, void *user) {
 		break;
 
 	case FSDB_VT_VCD_REAL:
-		type = FLX_TYPE_FLOAT;
+		type = FLX_DATA_TYPE_FLOAT;
 		description = (flxtext) "real";
 		break;
 
@@ -241,11 +245,11 @@ static void traceVar(fsdbTreeCBDataVar *var, void *user) {
 	case FSDB_VC_DT_SHORT:
 	case FSDB_VC_DT_INT:
 	case FSDB_VC_DT_LONG:
-		type = FLX_TYPE_INTEGER;
+		type = FLX_DATA_TYPE_INTEGER;
 		break;
 	case FSDB_VC_DT_FLOAT:
 	case FSDB_VC_DT_DOUBLE:
-		type = FLX_TYPE_FLOAT;
+		type = FLX_DATA_TYPE_FLOAT;
 		break;
 	}
 
@@ -283,27 +287,21 @@ static void traceVar(fsdbTreeCBDataVar *var, void *user) {
 
 	// add item
 	flxid itemId = var->u.idcode;
-	if (type == FLX_TYPE_LOGIC && to >= from && (to + 1 - from) == scale) {
+	if (type == FLX_DATA_TYPE_LOGIC && to >= from && (to + 1 - from) == scale) {
 		// strip [..] & trim
 		((char*) posa)[0] = 0;
 		while (strlen(varname) > 0 && varname[strlen(varname) - 1] == ' ')
 			varname[strlen(varname) - 1] = 0;
 
 		// scattered
-		if (flxAddScatteredSignal(trace, itemId, currentScope, varname, description, type, 0, from,
+		if (flxAddScatteredSignal(trace, itemId, currentScope, varname, description, NULL, type, -1, NULL, from,
 				to) == FLX_ERROR_ITEM_ALLREADY_DEFINED) {
-			flxAddScatteredSignalReference(trace, itemId, currentScope, varname, description, from, to);
+			flxAddScatteredSignalReference(trace, itemId, currentScope, varname, description, NULL, from, to);
 		}
 	} else {
-		flxtext descriptor = 0;
-		if (type == FLX_TYPE_LOGIC && scale > 1) {
-			char txt[32];
-			sprintf(txt, "<bits=%u>", scale);
-			descriptor = txt;
-		}
-		if (flxAddSignal(trace, itemId, currentScope, varname, description, type,
-				descriptor) == FLX_ERROR_ITEM_ALLREADY_DEFINED) {
-			flxAddSignalReference(trace, itemId, currentScope, varname, description);
+
+		if (flxAddSignal(trace, itemId, currentScope, varname, description, NULL, type, scale, NULL) == FLX_ERROR_ITEM_ALLREADY_DEFINED) {
+			flxAddSignalReference(trace, itemId, currentScope, varname, description, NULL);
 		}
 	}
 
@@ -358,7 +356,6 @@ static bool_T traceTreeItem(fsdbTreeCBType cbType, void *clientData, void *treeC
 }
 
 static bool_T scopeCountCallback(fsdbTreeCBType cbType, void *clientData, void *treeCbData) {
-	printf("%u\n", cbType);
 	switch (cbType) {
 	case FSDB_TREE_CBT_SCOPE:
 	case FSDB_TREE_CBT_STRUCT_BEGIN:
@@ -417,7 +414,7 @@ ffrTimeBasedVCTrvsHdl vcTrvsHdl, byte_T *vc, flxdomain time) {
 				}
 			}
 			flxWriteLogicStatesAt(trace, itemId, conflict, time, 0, scale > bs || bs < 1 ? FLX_STATE_0_BITS : buffer[0],
-					buffer, bs);
+					buffer, bs,scale);
 			break;
 
 		case FSDB_BYTES_PER_BIT_2B:
@@ -506,7 +503,7 @@ ffrTimeBasedVCTrvsHdl vcTrvsHdl, byte_T *vc, flxdomain time) {
 				}
 			}
 			flxWriteLogicStatesAt(trace, itemId, conflict, time, 0, scale > bs || bs < 1 ? FLX_STATE_0_BITS : buffer[0],
-					buffer, bs);
+					buffer, bs,scale);
 			break;
 
 		case FSDB_BYTES_PER_BIT_2B:
@@ -547,20 +544,60 @@ ffrTimeBasedVCTrvsHdl vcTrvsHdl, byte_T *vc, flxdomain time) {
 }
 
 // ######################################################################################################################
+// open/close trace
+// ######################################################################################################################
+
+void openTrace(){
+	fsdbTag64 time;
+	fsdbObj->ffrGetMinFsdbTag64(&time);
+	start = (((uint64_t) time.H << 32) | ((uint64_t) time.L));
+	fsdbObj->ffrGetMaxFsdbTag64(&time);
+	end = (((uint64_t) time.H << 32) | ((uint64_t) time.L));
+	zero = 0;
+
+	// domain base
+	char domainBase[16] = "s\0";
+	uint_T digit;
+	char *unit;
+	fsdbRC rc = fsdbObj->ffrExtractScaleUnit(fsdbObj->ffrGetScaleUnit(), digit, unit);
+	if (rc == FSDB_RC_SUCCESS) {
+		sprintf(domainBase, "%s", unit);
+		if (digit > 1)
+			sprintf(domainBase + strlen(domainBase), "%u", digit);
+	}
+
+	// send open and close to notify about domain
+	flxOpen(trace, 0, domainBase, start, 0);
+}
+
+void closeTrace(){
+	flxClose(trace, 0, end);
+}
+
+static void traceAllItems() {
+	// read scopes and vars
+	maxScopes = 1;
+	currentScope = 0;
+	fsdbObj->ffrSetTreeCBFunc(traceTreeItem, 0);
+	fsdbObj->ffrReadScopeVarTree();
+}
+
+// ######################################################################################################################
 // control handler
 // ######################################################################################################################
 
+/*
 flxresult handleReqScheme(flxbyte command, flxid controlId, flxid messageId, flxid memberId, flxbyte type, void **value,
 		flxuint *size, flxuint *opt) {
 
-	if (command == FLX_CONTROL_HANDLE_LEAVE_MESSAGE) {
+	if (command == FLX_CONTROL_HANDLE_FINISH_MESSAGE) {
 
 		// send geometry
 		unsigned version = 1;
 		unsigned maxTraceItems = MAX_TRACE_REQUEST_ITEMS;
 		struct flxMemberValueStruct members[2];
-		flxInitMember(members + 0, 0, 0, FLX_STRUCTTYPE_INTEGER, 0);
-		flxInitMember(members + 1, 1, 0, FLX_STRUCTTYPE_INTEGER, 0);
+		flxInitMember(members + 0, 0, NULL, NULL, NULL, NULL, FLX_DATA_TYPE_INTEGER, -1, NULL);
+		flxInitMember(members + 1, 1, NULL, NULL, NULL, NULL, FLX_DATA_TYPE_INTEGER, -1, NULL);
 		flxSetMember(members + 0, &version, sizeof(unsigned), 0, 1);
 		flxSetMember(members + 1, &maxTraceItems, sizeof(unsigned), 0, 1);
 		flxWriteControlResult(trace, controlId, messageId, members, 2);
@@ -571,37 +608,12 @@ flxresult handleReqScheme(flxbyte command, flxid controlId, flxid messageId, flx
 
 flxresult handleReqItems(flxbyte command, flxid controlId, flxid messageId, flxid memberId, flxbyte type, void **value,
 		flxuint *size, flxuint *opt) {
-	int n;
 
-	if (command == FLX_CONTROL_HANDLE_LEAVE_MESSAGE) {
+	if (command == FLX_CONTROL_HANDLE_FINISH_MESSAGE) {
 
-		// read scopes and vars
-		maxScopes = 1;
-		currentScope = 0;
-		fsdbObj->ffrSetTreeCBFunc(traceTreeItem, 0);
-		fsdbObj->ffrReadScopeVarTree();
-
-		// domain base
-		char domainBase[16] = "s\0";
-		uint_T digit;
-		char *unit;
-		fsdbRC rc = fsdbObj->ffrExtractScaleUnit(fsdbObj->ffrGetScaleUnit(), digit, unit);
-		if (rc == FSDB_RC_SUCCESS) {
-			sprintf(domainBase, "%s", unit);
-			if (digit > 1)
-				sprintf(domainBase + strlen(domainBase), "%u", digit);
-		}
-
-		// start / ned
-		fsdbTag64 time;
-		fsdbObj->ffrGetMinFsdbTag64(&time);
-		flxdomain start = (((uint64_t) time.H << 32) | ((uint64_t) time.L));
-		fsdbObj->ffrGetMaxFsdbTag64(&time);
-		flxdomain end = (((uint64_t) time.H << 32) | ((uint64_t) time.L));
-
-		// send open and close to notify about domain
-		flxOpen(trace, 0, domainBase, start, 0);
-		flxClose(trace, 0, end);
+		traceAllItems();
+		openTrace();
+		closeTrace();
 
 		// write result message & flush
 		flxWriteControlResult(trace, controlId, messageId, 0, 0);
@@ -609,9 +621,8 @@ flxresult handleReqItems(flxbyte command, flxid controlId, flxid messageId, flxi
 	}
 
 	return FLX_OK;
-}
-
-flxresult handleReqTrace(flxbyte command, flxid controlId, flxid messageId, flxid memberId, flxbyte type, void **value,
+}*/
+flxresult handleReqSignals(flxbyte command, flxid controlId, flxid messageId, flxid memberId, flxbyte type, void **value,
 		flxuint *size, flxuint *opt) {
 
 	static flxuint itemIds[MAX_TRACE_REQUEST_ITEMS];
@@ -623,7 +634,7 @@ flxresult handleReqTrace(flxbyte command, flxid controlId, flxid messageId, flxi
 	FLX_CONTROL_HANDLE_BINARY_PARAMETER(0, bItemIds, MAX_ENTRY_SIZE)
 	FLX_CONTROL_HANDLE_ENUM_PARAMETER(0, moreToCome, 0)
 
-	if (command == FLX_CONTROL_HANDLE_LEAVE_MESSAGE) {
+	if (command == FLX_CONTROL_HANDLE_FINISH_MESSAGE) {
 
 		// extract itemIds
 		while (pos < bItemIdsSize) {
@@ -675,7 +686,7 @@ flxresult handleReqTrace(flxbyte command, flxid controlId, flxid messageId, flxi
 		fsdbObj->ffrUnloadSignals();
 
 		// write result message & flush
-		flxWriteControlResult(trace, controlId, messageId, 0, 0);
+		flxWriteControlResponse(trace, controlId, messageId, 0, 0);
 		flxFlush(trace);
 
 		// reset count
@@ -684,16 +695,13 @@ flxresult handleReqTrace(flxbyte command, flxid controlId, flxid messageId, flxi
 	return FLX_OK;
 }
 
+
 flxresult handleCommands(flxbyte command, flxid controlId, flxid messageId, flxid memberId, flxbyte type, void **value,
 		flxuint *size, flxuint *opt) {
 
 	switch (controlId) {
-	case FLX_CONTROL_DB_REQ_SCHEME:
-		return handleReqScheme(command, controlId, messageId, memberId, type, value, size, opt);
-	case FLX_CONTROL_DB_REQ_ITEMS:
-		return handleReqItems(command, controlId, messageId, memberId, type, value, size, opt);
-	case FLX_CONTROL_DB_REQ_TRACE:
-		return handleReqTrace(command, controlId, messageId, memberId, type, value, size, opt);
+	case FLX_CONTROL_DB_REQ_SIGNALS:
+		return handleReqSignals(command, controlId, messageId, memberId, type, value, size, opt);
 	}
 	return FLX_ERROR_COMMAND_PARSE_ERROR;
 }
@@ -701,6 +709,17 @@ flxresult handleCommands(flxbyte command, flxid controlId, flxid messageId, flxi
 // ######################################################################################################################
 // main
 // ######################################################################################################################
+
+static void print_usage(const char *progname) {
+	const char *pn = progname ? progname : "fsdb2flx";
+	fprintf(stdout,
+		"Usage: %s [options] <fsdbfile>\n"
+		"Options:\n"
+		"  -h, --help        show this help message and exit\n"
+		"  -l, --lazy        lazy loading (control mode)\n"
+		"  -c, --compress N  compression level: 0=no, 1=LZ4, 2=FLZ+LZ4\n",
+		pn);
+}
 
 int main(int argc, char **argv) {
 
@@ -716,17 +735,56 @@ int main(int argc, char **argv) {
 	setmode(fileno(stdin),O_BINARY);
 #endif
 
+	// parse command line options
+	int lazy = 0;
+	int compressLevel = 0;
+	const char *fsdbFilename = NULL;
+	for (int i = 1; i < argc; ++i) {
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+			print_usage(argv[0]);
+			return 0;
+		} else if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--lazy") == 0) {
+			lazy = 1;
+		} else if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--compress") == 0) {
+			if (i + 1 < argc) {
+				compressLevel = atoi(argv[++i]);
+			} else {
+				fprintf(stderr, "Missing value for -c/--compress\n");
+				print_usage(argv[0]);
+				return 1;
+			}
+		} else if (strncmp(argv[i], "--compress=", 11) == 0) {
+			compressLevel = atoi(argv[i] + 11);
+		} else if (!fsdbFilename) {
+			fsdbFilename = argv[i];
+		} else {
+			// ignore extra args
+		}
+	}
+
+	if (compressLevel < 0 || compressLevel > 2) {
+		fprintf(stderr, "Invalid compress level %d. Allowed values: 0, 1, 2\n", compressLevel);
+		print_usage(argv[0]);
+		return 1;
+	}
+
+	if (!fsdbFilename) {
+		fprintf(stderr, "No fsdb file specified.\n");
+		print_usage(argv[0]);
+		return 1;
+	}
+
 // ######################################################################################################################
 // open fsdb
 
 	// check if output is fsdb
-	if (!ffrObject::ffrIsFSDB(argv[1])) {
-		fprintf(stderr, "Input is no FSDB file: %s \n", argv[1]);
+	if (!ffrObject::ffrIsFSDB((char*)fsdbFilename)) {
+		fprintf(stderr, "Input is no FSDB file: %s \n", fsdbFilename);
 		exit(1);
 	}
 
 	// check fsdb info type
-	ffrObject::ffrGetFSDBInfo(argv[1], fsdbInfo);
+	ffrObject::ffrGetFSDBInfo((char*)fsdbFilename, fsdbInfo);
 	if ((fsdbInfo.file_type != FSDB_FT_VERILOG) && (fsdbInfo.file_type != FSDB_FT_VERILOG_VHDL)
 			&& (fsdbInfo.file_type != FSDB_FT_VHDL)) {
 		fprintf(stderr, "Invalid fsdb info type : %u \n", fsdbInfo.file_type);
@@ -734,9 +792,9 @@ int main(int argc, char **argv) {
 	}
 
 	// open fsdb
-	fsdbObj = ffrObject::ffrOpen3(argv[1]);
+	fsdbObj = ffrObject::ffrOpen3((char*)fsdbFilename);
 	if (!fsdbObj) {
-		fprintf(stderr, "Could not open file: %s \n", argv[1]);
+		fprintf(stderr, "Could not open file: %s \n", fsdbFilename);
 		exit(3);
 	}
 
@@ -766,24 +824,99 @@ int main(int argc, char **argv) {
 	unsigned traceSize = FLX_TRACE_BYTES(1, maxSignals + maxScopes);
 
 	// trace memory
-	unsigned char *memoryBuffer=(unsigned char *)malloc(bufferSize);
+	unsigned char *memoryBuffer=(unsigned char *)malloc(bufferSize * 3);
 	unsigned char *memoryTrace=(unsigned char *)malloc(traceSize);
 
-	// buffer
-	flxBuffer buffer1 = flxCreateFixedBuffer(memoryBuffer, bufferSize, flxWriteToFile, stdout);
-	//flxBuffer buffer2 = flxCreateFixedBuffer(memoryBuffer + bufferSize, bufferSize, flxCompressFlz, buffer1);
+	flxBuffer bufferOut = flxCreateSimpleBuffer(memoryBuffer + bufferSize * 2, bufferSize, flxWriteToFile, stdout);
+	flxBuffer bufferLz4 = NULL;
+	flxBuffer bufferFlz = NULL;
+	flxBuffer topBuffer = bufferOut;
 
-	// trace
-	trace = flxCreateTrace(0, maxSignals + maxScopes, MAX_ENTRY_SIZE, memoryTrace, traceSize, buffer1);
+	if (compressLevel >= 1) {
+		bufferLz4 = flxCreateSimpleBuffer(memoryBuffer + bufferSize * 1, bufferSize, flxCompressLz4, bufferOut);
+		topBuffer = bufferLz4;
+	}
+	if (compressLevel >= 2) {
+		bufferFlz = flxCreateSimpleBuffer(memoryBuffer + bufferSize * 0, bufferSize, flxCompressFlz, bufferLz4);
+		topBuffer = bufferFlz;
+	}
+
+	trace = flxCreateTrace(0, maxSignals + maxScopes, MAX_ENTRY_SIZE, memoryTrace, traceSize, bufferOut);
 
 // ######################################################################################################################
 // send head and content
 
-	flxAddHead(trace, argv[1], "fsdb");
+	flxAddHead(trace, "fsdb", NULL);
 	flxFlush(trace);
 
-	//flxSetBuffer(trace, buffer2);
+	// active compression
+	flxSetBuffer(trace, topBuffer);
+
+	// trace all items
+	traceAllItems();
+
+	// open trace
+	openTrace();
 
 	//parse input
-	return flxParseControlInput(stdin, MAX_ENTRY_SIZE, handleCommands);
+	if (lazy) {
+
+		// close trace
+		closeTrace();
+
+		// send control scheme
+		unsigned version = 1;
+		unsigned maxTraceItems = MAX_TRACE_REQUEST_ITEMS;
+		struct flxMemberValueStruct members[2];
+		flxInitMember(members + 0, 0, NULL, NULL, NULL, NULL, FLX_DATA_TYPE_INTEGER, -1, NULL);
+		flxInitMember(members + 1, 1, NULL, NULL, NULL, NULL, FLX_DATA_TYPE_INTEGER, -1, NULL);
+		flxSetMember(members + 0, &version, sizeof(unsigned), 0, 1);
+		flxSetMember(members + 1, &maxTraceItems, sizeof(unsigned), 0, 1);
+		flxWriteControlRequest(trace, FLX_CONTROL_DB_SCHEME, 0, members, 2);
+		flxFlush(trace);
+
+		// enter control handler
+		return flxParseControlInput(stdin, MAX_ENTRY_SIZE, handleCommands);
+
+	} else {
+
+
+		// load all signals
+		fsdbObj->ffrUnloadSignals();
+		fsdbObj->ffrResetSignalList();
+		for (n = 1; n < maxSignals; n++) {
+			if (flxIsSignal(trace, n))
+				fsdbObj->ffrAddToSignalList(n);
+		}
+		fsdbObj->ffrLoadSignals();
+
+		// traverse all signals
+		fsdbVarIdcode sigArray[maxSignals];
+		int readableSignals = 0;
+		for (n = 1; n < maxSignals; n++)
+			if (flxIsSignal(trace, n))
+				sigArray[readableSignals++] = n;
+		
+		fsdbTag64 time;
+		byte_T *vc;
+		fsdbVarIdcode currentId;
+		ffrTimeBasedVCTrvsHdl vcTrvsHdl = fsdbObj->ffrCreateTimeBasedVCTrvsHdl(readableSignals, sigArray);
+		if (vcTrvsHdl && FSDB_RC_SUCCESS == vcTrvsHdl->ffrGetVC(&vc)) {
+			vcTrvsHdl->ffrGetXTag((void*) &time);
+			vcTrvsHdl->ffrGetVarIdcode(&currentId);
+			traceValueChange(currentId, vcTrvsHdl, vc, (((uint64_t) time.H << 32) | ((uint64_t) time.L)));
+		}
+		while (vcTrvsHdl && FSDB_RC_SUCCESS == vcTrvsHdl->ffrGotoNextVC()) {
+			vcTrvsHdl->ffrGetVC(&vc);
+			vcTrvsHdl->ffrGetXTag((void*) &time);
+			vcTrvsHdl->ffrGetVarIdcode(&currentId);
+			traceValueChange(currentId, vcTrvsHdl, vc, (((uint64_t) time.H << 32) | ((uint64_t) time.L)));
+		}
+
+		// unload all signals
+		fsdbObj->ffrUnloadSignals();
+
+		closeTrace();
+		flxFlush(trace);
+	}
 }

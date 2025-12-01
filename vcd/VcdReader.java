@@ -87,8 +87,10 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
     public static final String certificate = "YxwDcTBbUGoX55dzJYLYVcwkeYbjTaQ4VhODxCEfY7ExnE2ylazpEwuuq2EVmdJTgxpkFOEmAqkU6uVBl8aJVVrYkwPSzJaFm8Jr7Njkel6s32cE7YnIMRETtAegBG12pEoaVokZbyfN8n+x6wMQ4GM7T5AZBDPTuIhjJH3o8OxpgsHjUp4vFR3QGmwOna0dETtv1pK8dv2TUx6u5nwdrE3q/eQ9XErX/1LjZEUVUZg0FEl9YhoS5V9ASrb2qXEAysCS9foHYxdCbQ5xNyD2RPns6md3jwTKDpgaUgtYhvKJIZhcsGIqXAIba3y0vG8BWoUKbwWZXOj1uH723KE6GMbtTZEudHte";
     }
 
-    // --- Static content and parsing definitions ---
-
+    // ========================================================================================================================
+    // Constants
+    // ========================================================================================================================
+    
     // Dump state for VCD parsing
     enum DumpState { Normal, DumpVars, DumpOn, DumpOff, DumpAll }
 
@@ -161,28 +163,42 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
         token['-'] = TOKEN_CHANGE16 | ISample.STATE_D_BITS;
     }
 
+    // ========================================================================================================================
     // Properties
+    // ========================================================================================================================
 
     // Whether hierarchy resolution is enabled (SystemC)- contains split regEx if enabled 
     private String hierarchyResolver;
+    
     // Whether vector resolution is enabled (for multi-bit signals))
     private boolean vectorResolver;
+    
     // Whether empty scopes should be kept in the record structure
     private boolean keepEmptyScopes;
+    
     // List of filter expressions to include signals during import
     private List<FilterExpression> includeSignals;
+    
     // List of filter expressions to exclude signals during import
     private List<FilterExpression> excludeSignals;
+    
     // Start time for importing samples (domain units)
     private long start = Long.MIN_VALUE;
+    
     // End time for importing samples (domain units)
     private long end = Long.MAX_VALUE;
+    
     // Delay to apply to all timestamps (domain units)
     private long delay = 0;
+    
     // Stretch factor for timestamps
     private double dilate = 1;
 
 
+    // ========================================================================================================================
+    // Content
+    // ========================================================================================================================
+    
     // Console for logging throughout the parsing process
     private IConsoleStream console;
     // Current dump state (used during parsing)
@@ -199,7 +215,7 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
     // Map of VCD identifiers to their first assigned WaveformVariable
     private Map<String, WaveformVariable<String>> ids = new LinkedHashMap<String, WaveformVariable<String>>();
     // Map of scopes to lists of WaveformVariables defined within them
-    private Map<ICell, List<WaveformVariable<String>>> vars = new LinkedHashMap<ICell, List<WaveformVariable<String>>>();
+    private Map<ICell, List<WaveformVariable<String>>> varsByScope = new LinkedHashMap<ICell, List<WaveformVariable<String>>>();
 
     // Map of VCD identifiers to impulse sample writers for writing parsed samples
     private Map<String, ISamplesWriter> samplesById = new LinkedHashMap<String, ISamplesWriter>();
@@ -244,7 +260,6 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
 
         boolean notPref = context != IRegistryObject.Preference.class;
         return IParsingRecordReader.getPropertyModel( PROP_EMPTY|PROP_HIERARCHY|PROP_VECTOR|(notPref?(PROP_INCLUDE|PROP_RANGE|PROP_TRANSFORM):0)).add(ConfiguredConsoleStream.getPropertyModel());
-
     }
 
     // ========================================================================================================================
@@ -262,7 +277,8 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
      */
     @Override
     public int isApplicable(String name, String contentType, String cellType, IInputRequest inputRequest) {
-        if (inputRequest.text(32).trim().startsWith("$")) {
+        String text = inputRequest.text(32);
+        if (text != null && text.trim().startsWith("$")) {
             return APPLICABLE;
         }
         return NOT_APPLICABLE;
@@ -581,11 +597,11 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
         initRecord("VCD Record", timeBase);
 
         // Process VCD variables and create impulse signals
-        WaveformVariable.identifyGroups(vars,vectorResolver);
-        WaveformVariable.createSignals(vars, (Record) root, timeBase, this.includeSignals, this.excludeSignals);
-        samplesById = WaveformVariable.createWriters(vars, timeBase, this);
+        WaveformVariable.identifyGroups(varsByScope,vectorResolver);
+        WaveformVariable.createSignals(varsByScope, (Record) root, timeBase, this.includeSignals, this.excludeSignals);
+        samplesById = WaveformVariable.createWriters(varsByScope, timeBase, this);
 
-        console.info("Created ", samplesById.size(), " signal writers");
+        console.info("Created ", samplesById.size(), " signal writers"); 
 
         // Parse time range and transformation properties
         this.start = timeBase.parseMultiple(getProperty("start"), IDomainBase.PARSE_BIG | IDomainBase.PARSE_DOMAINBASE, this.start).longValue();
@@ -593,7 +609,7 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
         this.delay = timeBase.parseMultiple(getProperty("delay"), IDomainBase.PARSE_BIG | IDomainBase.PARSE_DOMAINBASE, this.delay).longValue();
         this.dilate = Utils.parseDouble(getProperty("dilate"), this.dilate);
         this.delay += timeZero;
-        this.current = dilate == 1.0 ? 0 + delay : (long) ((0  + delay) * dilate);
+        this.current = dilate == 1.0 ? (current + delay) : (long) ((current  + delay) * dilate);
 
 
         // Build fast lookup array for VCD identifiers if feasible
@@ -902,9 +918,13 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
             final byte b = buffer[i];
             if (b == ' ' || b == '\t') {
                 try {
-                    value = Double.parseDouble(new String(buffer, n + 1, i - n));
+                    String sval = new String(buffer, n + 1, i - n - 1);      
+                    if (sval.startsWith("inf"))
+                        value = Double.POSITIVE_INFINITY;
+                    else
+                        value = Double.valueOf(sval);
                 } catch (Throwable e) {
-                    // Keep default value on parse error
+                    value = Double.NaN;
                 }
                 break;
             }
@@ -958,7 +978,7 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
             final byte b = buffer[i];
             if (b == ' ' || b == '\t') {
                 try {
-                    value = new String(buffer, n + 1, i - n);
+                    value = new String(buffer, n + 1, i - n - 1);
                 } catch (Throwable e) {
                     // Keep empty string on error
                 }
@@ -1049,8 +1069,8 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
                 var.name = parameters[3];
                 var.handle = parameters[2]; // VCD identifier
                 // Map VCD type to impulse data type
-                var.dataType = "event".equals(parameters[0]) ? ISample.DATA_TYPE_ENUM
-                        : "real".equals(parameters[0]) ? ISample.DATA_TYPE_FLOAT
+                var.dataType = /*"event".equals(parameters[0]) ? ISample.DATA_TYPE_ENUM
+                        : */"real".equals(parameters[0]) ? ISample.DATA_TYPE_FLOAT
                                 : "string".equals(parameters[0]) ? ISample.DATA_TYPE_TEXT : ISample.DATA_TYPE_LOGIC;
                 var.description = parameters[0];
                 if (var.dataType == ISample.DATA_TYPE_LOGIC)
@@ -1090,10 +1110,10 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
                 } else
                     ids.put(var.handle, var);
                 // Add to scope's variable list
-                if (!vars.containsKey(scope))
-                    vars.put(scope, new ArrayList<WaveformVariable<String>>());
-                if (!vars.get(scope).contains(var))
-                    vars.get(scope).add(var);
+                if (!varsByScope.containsKey(scope))
+                    varsByScope.put(scope, new ArrayList<WaveformVariable<String>>());
+                if (!varsByScope.get(scope).contains(var))
+                    varsByScope.get(scope).add(var);
                 console.log(command, Utils.commarize(parameters));
                 break;
             case ENDDEFINITIONS:
@@ -1105,8 +1125,6 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
                 break;
             case SCOPE:
                 // Disable hierarchy resolution if nested scopes found
-                if (this.scope != this.base)
-                    hierarchyResolver = null;
                 used = parseParameters(buffer, i, parameters = new String[2]);
                 if (used == 0)
                     return 0;

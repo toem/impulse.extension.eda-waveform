@@ -1,11 +1,11 @@
-#package de.toem.impulse.extension.eda.waveform.fsdb
-SOURCES?=main.cc flux/flx.c flux/lz4.c flux/fastlz.c
-HEADER?=flux/flx.h  flux/lz4.h  flux/fastlz.h
-DEFINES?=-D FLX_CONTROL -D FLX_COMPRESS -D FLX_STDIO -D FLX_ITEM_EXTENSION="flxbyte signalType;flxuint signalScale;"
+#package de.toem.impulse.extension.eda.waveform.fst;
+SOURCES?=main.c flux/flx.c flux/lz4.c flux/fastlz.c fstapi.c libz/adler32.c libz/compress.c libz/crc32.c libz/deflate.c libz/gzclose.c libz/gzlib.c libz/gzread.c libz/gzwrite.c libz/infback.c libz/inffast.c libz/inflate.c libz/inftrees.c libz/trees.c libz/uncompr.c libz/zutil.c
+HEADER?=flux/flx.h  flux/lz4.h  flux/fastlz.h fstapi.h config.h
+DEFINES?=-D FLX_CONTROL -D FLX_COMPRESS -D FLX_STDIO -D FLX_ITEM_EXTENSION="flxbyte signalType;flxuint signalScale;" -Wno-implicit-function-declaration
 INCLUDES?=-Ilibz
-LIBS?=-lnffr -lnsys -lm -lpthread -ldl
-OUT=fsdb2flux
-COMPILER?=g++
+LIBS?=
+OUT=fst2flux
+COMPILER?=gcc
 RELEASE?=0
 ADD_FLAGS?=
 ADD_LIBS?=
@@ -29,13 +29,19 @@ endif
 ######################################################################################
 ifeq ($(OS),Windows_NT)
 	
-all: prepare-flux clean $(OUT).exe 
+all: prepare-flux prepare-fstapi clean $(OUT).exe 
 
 prepare-flux:
 	@if not exist "flux" ( \
 		echo Preparing flux folder from flux.zip... && \
 		mkdir flux && \
 		unzip -qo flux.zip -d flux || (echo Error: flux.zip not found or failed to extract && exit 1) \
+	)
+
+prepare-fstapi:
+	@if not exist "fstapi.h" if not exist "fstapi.c" ( \
+		echo Preparing fstapi files from fstapi.zip... && \
+		unzip -qo fstapi.zip || (echo Error: fstapi.zip not found or failed to extract && exit 1) \
 	)
 
 $(OUT).exe: $(DEPEND)
@@ -51,13 +57,19 @@ UNAME_S := $(shell uname -s)
 ######################################################################################
 ifeq ($(UNAME_S),Darwin)
 
-all: prepare-flux $(OUT)
+all: prepare-flux prepare-fstapi $(OUT)
 
 prepare-flux:
 	@if [ ! -d "flux" ]; then \
 		echo "Preparing flux folder from flux.zip..."; \
 		mkdir -p flux && \
 		unzip -qo flux.zip -d flux || (echo "Error: flux.zip not found or failed to extract" && exit 1); \
+	fi
+
+prepare-fstapi:
+	@if [ ! -f "fstapi.h" ] || [ ! -f "fstapi.c" ]; then \
+		echo "Preparing fstapi files from fstapi.zip..."; \
+		unzip -qo fstapi.zip || (echo "Error: fstapi.zip not found or failed to extract" && exit 1); \
 	fi
 
 $(OUT): $(DEPEND)
@@ -71,13 +83,19 @@ clean:
 ######################################################################################
 else # Linux
 
-all: prepare-flux $(OUT)
+all: prepare-flux prepare-fstapi $(OUT)
 
 prepare-flux:
 	@if [ ! -d "flux" ]; then \
 		echo "Preparing flux folder from flux.zip..."; \
 		mkdir -p flux && \
 		unzip -qo flux.zip -d flux || (echo "Error: flux.zip not found or failed to extract" && exit 1); \
+	fi
+
+prepare-fstapi:
+	@if [ ! -f "fstapi.h" ] || [ ! -f "fstapi.c" ]; then \
+		echo "Preparing fstapi files from fstapi.zip..."; \
+		unzip -qo fstapi.zip || (echo "Error: fstapi.zip not found or failed to extract" && exit 1); \
 	fi
 
 $(OUT): $(DEPEND)
@@ -92,3 +110,6 @@ endif
 endif
 
 ######################################################################################
+
+
+

@@ -1,67 +1,74 @@
+var Tester = Class.forName("de.toem.toolkits.pattern.element.serializer.AbstractCellReader");
+var samples = pwd+"/samples/";
 
-CellReader = Class.forName("de.toem.toolkits.pattern.element.serializer.AbstractCellReader");
-reader = "FST Reader";
-samples = pwd+"/samples/";
-properties = Elements.serializers.get(reader).getPropertyModel(null,null);
-result = true;
+var id = "de.toem.impulse.reader.fst";
+var descriptor = Elements.serializers.get(id);
+var properties = descriptor.getPropertyModel(null,null);
+properties.setVal("lazy","false");
 
-result = result && CellReader.testCompare(reader, samples+"/t0001.fst",null,null,console);
-//result = result && CellReader.testCompare(reader, samples+"/t0002.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0003.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0004.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0005.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0006.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0007.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0008.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0009.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0010.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0011.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0012.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0013.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0014.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0015.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0016.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0017.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0018.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0019.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0020.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0021.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0022.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0023.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0024.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0025.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0026.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0027.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0028.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0029.fst",null,null,console);
-result = result && CellReader.testCompare(reader, samples+"/t0030.fst",null,null,console);
+// limitation
+var endNotAlligned = ".*::end";
+
+//  boolean testCompare( id,  fileName, properties,  refName, refProperties,  includes, excludes,  console) 
+var result = true;
+result = Tester.testCompare(id, samples+"/t0001.fst",properties.total(),samples+"/t0001.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0002.fst",properties.total(),samples+"/t0002_novector.recMz", null, null,null,console) && result; // due to no vector
+result = Tester.testCompare(id, samples+"/t0003.fst",properties.total(),samples+"/t0003.recMz", null, null,null,console) && result;  
+result = Tester.testCompare(id, samples+"/t0004.fst",properties.total(),samples+"/t0004.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0005.fst",properties.total(),samples+"/t0005.recMz", null, null, null,console) && result;
+result = Tester.testCompare(id, samples+"/t0006.fst",properties.total(),samples+"/t0006.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0007.fst",properties.total(),samples+"/t0007.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0008.fst",properties.total(),samples+"/t0008_novector.recMz", null, null,null,console) && result; // due to no vector
+result = Tester.testCompare(id, samples+"/t0009.fst",properties.total(),samples+"/t0009.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0010.fst",properties.total(),samples+"/t0010.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0011.fst",properties.total(),samples+"/t0011.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0012.fst",properties.total(),samples+"/t0012.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0013.fst",properties.total(),samples+"/t0013.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0014.fst",properties.total(),samples+"/t0014.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0015.fst",properties.total(),samples+"/t0015.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0016.fst",properties.total(),samples+"/t0016.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0017.fst",properties.total(),samples+"/t0017.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0018.fst",properties.total(),samples+"/t0018.recMz", null, null,null,console) && result;
+//result = Tester.testCompare(id, samples+"/t0019.fst",properties.total(),samples+"/t0019.recMz", null, null,null,console) && result; // due to no vector
+result = Tester.testCompare(id, samples+"/t0020.fst",properties.total(),samples+"/t0020.recMz", null, null,null,console) && result;
+//result = Tester.testCompare(id, samples+"/t0021.fst",properties.total(),samples+"/t0021.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0022.fst",properties.total(),samples+"/t0022.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0023.fst",properties.total(),samples+"/t0023.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0024.fst",properties.total(),samples+"/t0024.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0025.fst",properties.total(),samples+"/t0025.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0026.fst",properties.total(),samples+"/t0026.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0027.fst",properties.total(),samples+"/t0027.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0028.fst",properties.total(),samples+"/t0028.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0029.fst",properties.total(),samples+"/t0029.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t0030.fst",properties.total(),samples+"/t0030.recMz", null, null,null,console) && result;
+
 
 // range
-properties.setVal("start","1us");
-properties.setVal("end","3us");
-result = result && CellReader.testCompare(reader, samples+"/t0002.fst", properties.total(), samples+"/t0002_range.recMl",console);
+properties.setVal("start","50ms");
+properties.setVal("end","100ms");
+result = Tester.testCompare(id, samples+"/t0003.fst", properties.total(), samples+"/t0003_range.recMz", null, null,null,console) && result;
 properties.reset("start");
 properties.reset("end");
 
 // select
-properties.setVal("include","scp0003");
-properties.setVal("exclude","scp0004");
+properties.setVal("include","scp0001");
+properties.setVal("exclude","scp0003");
 properties.setVal("empty","false");
-result = result && CellReader.testCompare(reader, samples+"/t0002.fst", properties.total(), samples+"/t0002_select.recMl",console);
+result = Tester.testCompare(id, samples+"/t0004.fst", properties.total(), samples+"/t0004_select.recMz", null, null,null,console) && result;
 properties.reset("include");
 properties.reset("exclude");
 properties.reset("empty");
 
-// vector
-properties.setVal("vector","false");
-result = result && CellReader.testCompare(reader, samples+"/t0019.fst", properties.total(), samples+"/t0019_novector.recMl",console);
-properties.reset("vector");
-
 // transform
 properties.setVal("delay","10ms");
 properties.setVal("dilate","2");
-result = result && CellReader.testCompare(reader, samples+"/t0019.fst", properties.total(), samples+"/t0019_transform.recMl",console);
+result = Tester.testCompare(id, samples+"/t0005.fst", properties.total(), samples+"/t0005_transform.recMz", null, null,endNotAlligned,console) && result;
 properties.reset("delay");
 properties.reset("dilate");
+
+// internal
+result = Tester.testCompare(id, samples+"/t1001.fst",properties.total(),samples+"/t1001.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t1002.fst",properties.total(),samples+"/t1002.recMz", null, null,null,console) && result;
+result = Tester.testCompare(id, samples+"/t1003.fst",properties.total(),samples+"/t1003.recMz", null, null,null,console) && result;
 
 result

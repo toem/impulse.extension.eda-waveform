@@ -1,3 +1,3 @@
 
-## V0.5.6 Sep 27, 2025
-- Beta Q3 version
+## V0.9.0 Nov 29, 2025
+- Beta Q4 version
