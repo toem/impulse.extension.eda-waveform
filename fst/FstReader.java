@@ -608,7 +608,7 @@ public class FstReader extends AbstractSingleDomainRecordReader {
         int ir = request instanceof Integer ? ((Integer) request).intValue() : -1;
         if (SUPPORT_CONFIGURATION == ir && DefaultSerializerConfiguration.TYPE.equals(context))
             return true;
-        return ir == (ir & (SUPPORT_PROPERTIES | SUPPORT_SOURCE));
+        return ir == (ir & (SUPPORT_PROPERTIES | SUPPORT_CUSTOM));
     }
 
     /**
@@ -619,10 +619,10 @@ public class FstReader extends AbstractSingleDomainRecordReader {
      *
      * @return configured ICell instance for Java serializer preference
      */
-    public static ICell createJavaPreference() {
+    public static ICell createCustomBlock(int flags) {
         try {
             JavaSerializerPreference p = new JavaSerializerPreference();
-            p.setName(Annotation.label);
+            p.setName("my"+Annotation.label);
             p.description = Annotation.description;
             p.helpUrl = Annotation.helpURL;
             p.namePattern = Annotation.defaultNamePattern;
@@ -1471,8 +1471,8 @@ public class FstReader extends AbstractSingleDomainRecordReader {
                     // Check if this is a variable type entry (FST_VT_* values 0-29 for different signal types)
                     if (tag >= 0 && tag <= 29) {
 
-                        if (scope == null)
-                            Utils.log();
+                        if (scope == null);
+//                            Utils.log();
                         // Parse variable/signal definition within current scope
                         parseHierarchyVariable(reader, scope, tag);
                     } else {

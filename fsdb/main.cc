@@ -1,7 +1,44 @@
 //package de.toem.impulse.extension.eda.waveform.fsdb
 /*******************************************************************************
- * Copyright (c) 2012-2017 toem
  *
+ * Native FSDB (Fast Signal Database) to FLX (Flux) converter for the impulse framework.
+ *
+ * This native implementation provides high-performance conversion of FSDB waveform files
+ * to the impulse FLX format through direct integration with the Synopsys Verdi FSDB API library.
+ * It serves as the core processing engine for the FsdbNativeReader Java component, offering
+ * superior parsing speed and memory efficiency compared to pure Java implementations.
+ *
+ * Key features of this implementation:
+ * - Direct FSDB API integration for optimal parsing performance
+ * - Complete support for Verilog and VHDL signal types and data encodings
+ * - Time-based value change traversal with efficient incremental loading
+ * - Hierarchical scope and signal reconstruction from FSDB metadata
+ * - Lazy loading support via FLX control protocol for memory-efficient processing
+ * - Configurable output compression (none, LZ4, dual-stage FLZ+LZ4)
+ * - Cross-platform compatibility (Windows, Linux, macOS with Verdi installation)
+ *
+ * Architecture:
+ * The converter operates in two modes:
+ * 1. Eager mode: Full conversion of all signals and value changes in a single pass
+ * 2. Lazy mode: Control protocol-based incremental loading of requested signals only
+ *
+ * In lazy mode, the converter:
+ * - Exports the complete hierarchy and signal metadata upfront
+ * - Waits for FLX control messages requesting specific signal subsets
+ * - Loads and processes only the requested signals' value changes on demand
+ * - Supports multiple request/response cycles for progressive loading
+ * - Automatically unloads signals after processing to minimize memory usage
+ *
+ * Data flow:
+ * FSDB file → FSDB API parsing → hierarchy extraction → FLX trace structure →
+ * time-based value change traversal → FLX output buffer → compression layers → stdout
+ *
+ * Memory management:
+ * - Dynamic allocation for trace structures and buffers based on detected signal counts
+ * - Signal load/unload cycles to bound memory during lazy processing
+ * - Optional compression layers to reduce output bandwidth
+ *
+ * Copyright (c) 2012-2025 Thomas Haber
  *
  *******************************************************************************/
 
@@ -48,9 +85,19 @@ int64_t timespecDiff(struct timespec *timeA_p, struct timespec *timeB_p) {
 }
 
 // ######################################################################################################################
-// trace signals and scopes
+// Trace signals and scopes
 // ######################################################################################################################
 
+/**
+ * Base function for adding scopes to the FLX trace hierarchy.
+ *
+ * Creates a nested scope entry in the trace structure, maintaining the hierarchical
+ * relationship via the currentScope global. Each scope is assigned a unique ID by
+ * combining the maxSignals base with the scope count offset.
+ *
+ * @param name Scope name string
+ * @param description Scope type description (e.g., "module", "task", "struct")
+ */
 static void traceScopeBase(flxtext name, flxtext description) {
 	flxid nextScope = maxSignals + maxScopes;
 	flxAddScope(trace, nextScope, currentScope, name, description, NULL);
@@ -310,6 +357,25 @@ static void traceVar(fsdbTreeCBDataVar *var, void *user) {
 	trace->items[itemId - 1].signalScale = scale;
 }
 
+/**
+ * FSDB hierarchy tree traversal callback function.
+ *
+ * Processes all hierarchy events during tree traversal including scope begin/end,
+ * struct begin/end, array begin/end, and variable definitions. Maintains the
+ * currentScope context to correctly nest signals within their containing scopes.
+ *
+ * Callback types handled:
+ * - SCOPE: Verilog/VHDL scope definitions
+ * - STRUCT_BEGIN/END: SystemVerilog struct boundaries
+ * - ARRAY_BEGIN/END: Array definition boundaries (currently ignored)
+ * - VAR: Signal/variable definitions
+ * - UPSCOPE: Scope close (returns to parent scope)
+ *
+ * @param cbType Callback type identifying the hierarchy event
+ * @param clientData Client data pointer (unused)
+ * @param treeCbData Callback-specific data structure
+ * @return TRUE to continue traversal, FALSE to abort
+ */
 static bool_T traceTreeItem(fsdbTreeCBType cbType, void *clientData, void *treeCbData) {
 	switch (cbType) {
 	case FSDB_TREE_CBT_BEGIN_TREE:
@@ -355,6 +421,17 @@ static bool_T traceTreeItem(fsdbTreeCBType cbType, void *clientData, void *treeC
 	return 1;
 }
 
+/**
+ * Scope counting callback for geometry detection.
+ *
+ * Simple callback that counts scope and struct definitions during an initial
+ * hierarchy traversal to determine memory requirements before full processing.
+ *
+ * @param cbType Callback type identifying the hierarchy event
+ * @param clientData Client data pointer (unused)
+ * @param treeCbData Callback-specific data structure
+ * @return Always TRUE to continue traversal
+ */
 static bool_T scopeCountCallback(fsdbTreeCBType cbType, void *clientData, void *treeCbData) {
 	switch (cbType) {
 	case FSDB_TREE_CBT_SCOPE:
@@ -367,9 +444,33 @@ static bool_T scopeCountCallback(fsdbTreeCBType cbType, void *clientData, void *
 }
 
 // ######################################################################################################################
-// trace value changes
+// Trace value changes
 // ######################################################################################################################
 
+/**
+ * Processes a value change event from FSDB and writes it to the FLX trace.
+ *
+ * Comprehensive value change handling for multiple data types and encodings:
+ *
+ * Verilog (VCD) encoding:
+ * - 1 byte per bit: Maps VCD states (0, 1, X, Z) to FLX logic states
+ * - 2 bytes per bit: Reserved for extended encodings (not yet implemented)
+ * - 4 bytes per bit: Float values or memory depth markers
+ * - 8 bytes per bit: Double/real values
+ *
+ * VHDL encoding:
+ * - 1 byte per bit: Maps 9-state VHDL std_ulogic (U, X, 0, 1, Z, W, L, H, -) to FLX states
+ * - Multi-byte variants similar to Verilog
+ *
+ * Conflict detection:
+ * Logic values containing X, U, or unknown states are marked with conflict flag
+ * for proper rendering in waveform viewers.
+ *
+ * @param itemId Signal handle/ID identifying which signal changed
+ * @param vcTrvsHdl Time-based value change traversal handle providing access to FSDB data
+ * @param vc Pointer to the raw value change byte array
+ * @param time Absolute timestamp for this value change
+ */
 static void traceValueChange(int itemId, /*ffrVCTrvsHdl*/
 ffrTimeBasedVCTrvsHdl vcTrvsHdl, byte_T *vc, flxdomain time) {
 	unsigned n;
@@ -544,9 +645,21 @@ ffrTimeBasedVCTrvsHdl vcTrvsHdl, byte_T *vc, flxdomain time) {
 }
 
 // ######################################################################################################################
-// open/close trace
+// Open/close trace
 // ######################################################################################################################
 
+/**
+ * Initializes the FLX trace with FSDB timing metadata and domain configuration.
+ *
+ * Extracts timing information from the FSDB file (min/max time from fsdbTag64 structures)
+ * and configures the FLX trace domain accordingly. Parses the FSDB scale unit string
+ * to determine the appropriate domain base (e.g., "ns", "ps100", "us").
+ *
+ * The FSDB timescale format provides both digit multiplier and unit string, which
+ * are combined to produce FLX domain base strings like "ps10" for 10 picoseconds.
+ *
+ * Sends the FLX open command with the configured domain and start time.
+ */
 void openTrace(){
 	fsdbTag64 time;
 	fsdbObj->ffrGetMinFsdbTag64(&time);
@@ -570,10 +683,28 @@ void openTrace(){
 	flxOpen(trace, 0, domainBase, start, 0);
 }
 
+/**
+ * Finalizes the FLX trace by sending the close command with the end time.
+ *
+ * Marks the end of the trace data stream, allowing readers to know the complete
+ * time range of the waveform. Should be called after all value changes have been
+ * written to the trace.
+ */
 void closeTrace(){
 	flxClose(trace, 0, end);
 }
 
+/**
+ * Iterates through the complete FSDB hierarchy and populates the FLX trace structure.
+ *
+ * Performs a single-pass traversal of the FSDB hierarchy tree by setting the tree
+ * callback function and invoking ffrReadScopeVarTree. The traceTreeItem callback
+ * processes scope open/close entries and variable definitions, maintaining the
+ * current scope context to correctly nest signals.
+ *
+ * This function must be called before any value change processing to establish
+ * the complete signal and scope metadata in the trace structure.
+ */
 static void traceAllItems() {
 	// read scopes and vars
 	maxScopes = 1;
@@ -583,45 +714,38 @@ static void traceAllItems() {
 }
 
 // ######################################################################################################################
-// control handler
+// Control handler
 // ######################################################################################################################
 
-/*
-flxresult handleReqScheme(flxbyte command, flxid controlId, flxid messageId, flxid memberId, flxbyte type, void **value,
-		flxuint *size, flxuint *opt) {
-
-	if (command == FLX_CONTROL_HANDLE_FINISH_MESSAGE) {
-
-		// send geometry
-		unsigned version = 1;
-		unsigned maxTraceItems = MAX_TRACE_REQUEST_ITEMS;
-		struct flxMemberValueStruct members[2];
-		flxInitMember(members + 0, 0, NULL, NULL, NULL, NULL, FLX_DATA_TYPE_INTEGER, -1, NULL);
-		flxInitMember(members + 1, 1, NULL, NULL, NULL, NULL, FLX_DATA_TYPE_INTEGER, -1, NULL);
-		flxSetMember(members + 0, &version, sizeof(unsigned), 0, 1);
-		flxSetMember(members + 1, &maxTraceItems, sizeof(unsigned), 0, 1);
-		flxWriteControlResult(trace, controlId, messageId, members, 2);
-		flxFlush(trace);
-	}
-	return FLX_OK;
-}
-
-flxresult handleReqItems(flxbyte command, flxid controlId, flxid messageId, flxid memberId, flxbyte type, void **value,
-		flxuint *size, flxuint *opt) {
-
-	if (command == FLX_CONTROL_HANDLE_FINISH_MESSAGE) {
-
-		traceAllItems();
-		openTrace();
-		closeTrace();
-
-		// write result message & flush
-		flxWriteControlResult(trace, controlId, messageId, 0, 0);
-		flxFlush(trace);
-	}
-
-	return FLX_OK;
-}*/
+/**
+ * Handles FLX control protocol requests for selective signal loading (lazy mode).
+ *
+ * Processes REQ_SIGNALS control messages containing a list of signal IDs to load.
+ * Accumulates signal IDs across multiple messages (supporting continuation via moreToCome flag),
+ * then performs selective signal loading and time-based value change traversal.
+ *
+ * FSDB-specific lazy loading process:
+ * 1. Unload any previously loaded signals (ffrUnloadSignals)
+ * 2. Reset signal list (ffrResetSignalList)
+ * 3. Add requested signal IDs to load list (ffrAddToSignalList)
+ * 4. Load selected signals (ffrLoadSignals)
+ * 5. Create time-based traversal handle for loaded signals
+ * 6. Iterate value changes and write to FLX trace
+ * 7. Unload signals to free memory
+ *
+ * This enables memory-efficient lazy loading where only signals of interest are processed,
+ * which is critical for large FSDB files with thousands of signals.
+ *
+ * @param command FLX control command type (e.g., HANDLE_FINISH_MESSAGE)
+ * @param controlId Control ID identifying the command type
+ * @param messageId Unique message ID for request/response correlation
+ * @param memberId Parameter member ID within the control message
+ * @param type Data type of the parameter
+ * @param value Pointer to parameter value data
+ * @param size Pointer to parameter size
+ * @param opt Optional flags
+ * @return FLX_OK on success, error code on failure
+ */
 flxresult handleReqSignals(flxbyte command, flxid controlId, flxid messageId, flxid memberId, flxbyte type, void **value,
 		flxuint *size, flxuint *opt) {
 
@@ -696,6 +820,23 @@ flxresult handleReqSignals(flxbyte command, flxid controlId, flxid messageId, fl
 }
 
 
+/**
+ * Top-level FLX control command dispatcher.
+ *
+ * Routes incoming control commands to appropriate handlers based on controlId.
+ * Currently supports DB_REQ_SIGNALS for lazy signal loading. Can be extended
+ * to handle additional control protocols as needed.
+ *
+ * @param command FLX control command type
+ * @param controlId Control ID identifying the command type
+ * @param messageId Unique message ID for request/response correlation
+ * @param memberId Parameter member ID within the control message
+ * @param type Data type of the parameter
+ * @param value Pointer to parameter value data
+ * @param size Pointer to parameter size
+ * @param opt Optional flags
+ * @return FLX_OK on success, error code on failure
+ */
 flxresult handleCommands(flxbyte command, flxid controlId, flxid messageId, flxid memberId, flxbyte type, void **value,
 		flxuint *size, flxuint *opt) {
 
@@ -707,9 +848,14 @@ flxresult handleCommands(flxbyte command, flxid controlId, flxid messageId, flxi
 }
 
 // ######################################################################################################################
-// main
+// Main
 // ######################################################################################################################
 
+/**
+ * Prints command-line usage information to stdout.
+ *
+ * @param progname Program name to display in usage message (typically argv[0])
+ */
 static void print_usage(const char *progname) {
 	const char *pn = progname ? progname : "fsdb2flx";
 	fprintf(stdout,
@@ -721,6 +867,38 @@ static void print_usage(const char *progname) {
 		pn);
 }
 
+/**
+ * Main entry point for the FSDB to FLX converter.
+ *
+ * Command-line interface:
+ * - Parses options for lazy mode (-l), compression level (-c), and help (-h)
+ * - Validates FSDB file type and opens via FSDB API (ffrOpen3)
+ * - Detects signal and scope counts for memory allocation via initial tree traversal
+ * - Initializes FLX trace structure and output buffers with optional compression
+ * - Exports hierarchy and metadata
+ * - In eager mode: loads all signals and converts value changes in one pass
+ * - In lazy mode: enters control protocol loop to process selective signal requests
+ *
+ * FSDB file validation:
+ * - Checks file is valid FSDB format (ffrIsFSDB)
+ * - Validates file type is Verilog, VHDL, or mixed (rejects other types)
+ * - Reads data type definitions for transaction support (prevents crashes)
+ *
+ * Output:
+ * Binary FLX format written to stdout. Use binary mode on Windows to prevent
+ * newline translation corruption.
+ *
+ * Exit codes:
+ * - 0: Success
+ * - 1: Invalid arguments or compression level
+ * - 2: Invalid FSDB info type
+ * - 3: Could not open FSDB file
+ * - 4: Invalid FSDB file type
+ *
+ * @param argc Argument count
+ * @param argv Argument vector
+ * @return Exit code
+ */
 int main(int argc, char **argv) {
 
 	ffrFSDBInfo fsdbInfo;

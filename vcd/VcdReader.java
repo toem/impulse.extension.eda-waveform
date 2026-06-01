@@ -83,7 +83,7 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
     public static final String description = I18n.Serializer_VcdReader_Description;
     public static final String helpURL = I18n.Serializer_VcdReader_HelpURL;
     public static final String defaultNamePattern = "\\.vcd$,\\.VCD$";
-    public static final String formatType = "vcd";
+    public static final String formatType = "vcd"; 
     public static final String certificate = "YxwDcTBbUGoX55dzJYLYVcwkeYbjTaQ4VhODxCEfY7ExnE2ylazpEwuuq2EVmdJTgxpkFOEmAqkU6uVBl8aJVVrYkwPSzJaFm8Jr7Njkel6s32cE7YnIMRETtAegBG12pEoaVokZbyfN8n+x6wMQ4GM7T5AZBDPTuIhjJH3o8OxpgsHjUp4vFR3QGmwOna0dETtv1pK8dv2TUx6u5nwdrE3q/eQ9XErX/1LjZEUVUZg0FEl9YhoS5V9ASrb2qXEAysCS9foHYxdCbQ5xNyD2RPns6md3jwTKDpgaUgtYhvKJIZhcsGIqXAIba3y0vG8BWoUKbwWZXOj1uH723KE6GMbtTZEudHte";
     }
 
@@ -92,21 +92,40 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
     // ========================================================================================================================
     
     // Dump state for VCD parsing
-    enum DumpState { Normal, DumpVars, DumpOn, DumpOff, DumpAll }
+    static final int DUMPSTATE_NORMAL = 0;
+    static final int DUMPSTATE_DUMPVARS = 1;
+    static final int DUMPSTATE_DUMPON = 2;
+    static final int DUMPSTATE_DUMPOFF = 3;
+    static final int DUMPSTATE_DUMPALL = 4;
 
     // VCD command keywords
-    enum Command {
-        VAR, ENDDEFINITIONS, END, SCOPE, UPSCOPE, COMMENT, DATE, DUMPALL, DUMPOFF, DUMPON, DUMPVARS, VERSION, TIMESCALE, TIMEZERO
-    }
+    static final int COMMAND_VAR = 0;
+    static final int COMMAND_ENDDEFINITIONS = 1;
+    static final int COMMAND_END = 2;
+    static final int COMMAND_SCOPE = 3;
+    static final int COMMAND_UPSCOPE = 4;
+    static final int COMMAND_COMMENT = 5;
+    static final int COMMAND_DATE = 6;
+    static final int COMMAND_DUMPALL = 7;
+    static final int COMMAND_DUMPOFF = 8;
+    static final int COMMAND_DUMPON = 9;
+    static final int COMMAND_DUMPVARS = 10;
+    static final int COMMAND_VERSION = 11;
+    static final int COMMAND_TIMESCALE = 12;
+    static final int COMMAND_TIMEZERO = 13;
 
     // Byte arrays for command keywords
     static byte[][] commands;
+    static final String[] commandNames = {
+        "var", "enddefinitions", "end", "scope", "upscope", "comment", "date",
+        "dumpall", "dumpoff", "dumpon", "dumpvars", "version", "timescale", "timezero"
+    };
 
     // Static initialization for command keywords
     static {
-        commands = new byte[Command.values().length][];
-        for (int n = 0; n < Command.values().length; n++) {
-            commands[n] = Command.values()[n].toString().toLowerCase().getBytes();
+        commands = new byte[commandNames.length][];
+        for (int n = 0; n < commandNames.length; n++) {
+            commands[n] = commandNames[n].getBytes();
         }
     }
 
@@ -201,14 +220,19 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
     
     // Console for logging throughout the parsing process
     private IConsoleStream console;
+    
     // Current dump state (used during parsing)
-    private DumpState state = DumpState.Normal;
+    private int state = DUMPSTATE_NORMAL;
+    
     // Domain base for time values (e.g., ns, us)
     private TimeBase timeBase = TimeBase.ns;
+    
     // Offset to apply to all timestamps (domain units)
     private long timeZero = 0;
+    
     // Current scope in the record hierarchy during parsing
     private ICell scope;
+    
     // Current time (domain units)
     private long current = 0;
 
@@ -219,10 +243,13 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
 
     // Map of VCD identifiers to impulse sample writers for writing parsed samples
     private Map<String, ISamplesWriter> samplesById = new LinkedHashMap<String, ISamplesWriter>();
+    
     // Array index for fast lookup of sample writers by VCD identifier
     private ISamplesWriter[] samplesIndex;
+    
     // Indicates whether the record and signal structure has been initialized
     private boolean initialized;
+    
     // Base index for samplesIndex array
     private int samplesIndexBase;
     private boolean useMapLogged;
@@ -300,7 +327,7 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
         int ir = request instanceof Integer ? ((Integer) request).intValue() : -1;
         if (SUPPORT_CONFIGURATION == ir && DefaultSerializerConfiguration.TYPE.equals(context))
             return true;
-        return ir == (ir & (SUPPORT_PROPERTIES | SUPPORT_SOURCE));
+        return ir == (ir & (SUPPORT_PROPERTIES | SUPPORT_CUSTOM));
     }
 
     /**
@@ -311,10 +338,10 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
      *
      * @return configured ICell instance for Java serializer preference
      */
-    public static ICell createJavaPreference() {
+    public static ICell createCustomBlock(int flags) {
         try {
             JavaSerializerPreference p = new JavaSerializerPreference();
-            p.setName(Annotation.label);
+            p.setName("my"+Annotation.label);
             p.description = Annotation.description;
             p.helpUrl = Annotation.helpURL;
             p.namePattern = Annotation.defaultNamePattern;
@@ -468,7 +495,7 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
                 close(current + 1);
                 console.info("Record close at position ", current + 1);
             }
-            console.major("Parsing completed in ", (Utils.millies() - started), " ms");
+            console.info("Parsing completed in ", (Utils.millies() - started), " ms");
         }
     }
 
@@ -1030,12 +1057,12 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
         final int length = buffer.length;
         boolean more = false;
         // Try to match each known command
-        for (Command command : Command.values()) {
-
+        for (int cmdIdx = 0; cmdIdx < commandNames.length; cmdIdx++) {
+            byte[] bytes = commands[cmdIdx];
+            
             // Match command name byte-by-byte
             int i = n;
             boolean skip = false;
-            byte[] bytes = commands[command.ordinal()];
             for (byte b : bytes) {
                 i++;
                 if (i >= length) {
@@ -1055,8 +1082,8 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
             i++;
             int used = 0;
             String[] parameters;
-            switch (command) {
-            case VAR:
+            switch (cmdIdx) {
+            case COMMAND_VAR:
                 // Parse variable definition
                 used = parseVarParameters(buffer, i, parameters = new String[7]);
                 if (used == 0)
@@ -1114,16 +1141,16 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
                     varsByScope.put(scope, new ArrayList<WaveformVariable<String>>());
                 if (!varsByScope.get(scope).contains(var))
                     varsByScope.get(scope).add(var);
-                console.log(command, Utils.commarize(parameters));
+                console.log(commandNames[cmdIdx], Utils.commarize(parameters));
                 break;
-            case ENDDEFINITIONS:
+            case COMMAND_ENDDEFINITIONS:
                 used = parseParameterBlock(buffer, i, parameters = new String[1]);
                 if (used == 0)
                     return 0;
-                console.log(command, Utils.commarize(parameters));
-            case END:
+                console.log(commandNames[cmdIdx], Utils.commarize(parameters));
+            case COMMAND_END:
                 break;
-            case SCOPE:
+            case COMMAND_SCOPE:
                 // Disable hierarchy resolution if nested scopes found
                 used = parseParameters(buffer, i, parameters = new String[2]);
                 if (used == 0)
@@ -1138,36 +1165,36 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
                     this.scope.addChild(scope);
                 }
                 this.scope = scope;
-                console.log(command, Utils.commarize(parameters));
+                console.log(commandNames[cmdIdx], Utils.commarize(parameters));
                 break;
-            case UPSCOPE:
+            case COMMAND_UPSCOPE:
                 used = parseParameterBlock(buffer, i, parameters = new String[1]);
                 if (used == 0)
                     return 0;
                 // Move up one level in scope hierarchy
                 if (this.scope.getCellContainer() != null)
                     this.scope = this.scope.getCellContainer();
-                console.log(command, Utils.commarize(parameters));
+                console.log(commandNames[cmdIdx], Utils.commarize(parameters));
                 break;
-            case COMMENT:
+            case COMMAND_COMMENT:
                 used = parseParameterBlock(buffer, i, parameters = new String[1]);
                 if (used == 0)
                     return 0;
-                console.log(command, Utils.commarize(parameters));
+                console.log(commandNames[cmdIdx], Utils.commarize(parameters));
                 break;
-            case DATE:
+            case COMMAND_DATE:
                 used = parseParameterBlock(buffer, i, parameters = new String[1]);
                 if (used == 0)
                     return 0;
-                console.log(command, Utils.commarize(parameters));
+                console.log(commandNames[cmdIdx], Utils.commarize(parameters));
                 break;
-            case DUMPALL:
+            case COMMAND_DUMPALL:
                 break;
-            case DUMPOFF:
+            case COMMAND_DUMPOFF:
                 break;
-            case DUMPON:
+            case COMMAND_DUMPON:
                 break;
-            case DUMPVARS:
+            case COMMAND_DUMPVARS:
                 // Initialize record structure on dumpvars command
                 if (!initialized) {
 
@@ -1180,14 +1207,14 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
                     }
                 }
                 break;
-            case VERSION:
+            case COMMAND_VERSION:
                 used = parseParameterBlock(buffer, i, parameters = new String[1]);
                 if (used == 0)
                     return 0;
                 // Enable hierarchy for SystemC VCD files
-                console.log(command, Utils.commarize(parameters));
+                console.log(commandNames[cmdIdx], Utils.commarize(parameters));
                 break;
-            case TIMESCALE:
+            case COMMAND_TIMESCALE:
                 used = parseParameters(buffer, i, parameters = new String[2], PATTERN_TIMESCALE);
                 if (used == 0)
                     return 0;
@@ -1206,15 +1233,15 @@ public class VcdReader extends AbstractSingleDomainRecordReader {
                 if (!samplesById.isEmpty())
                     for (ISamplesWriter writer : samplesById.values())
                         ((SamplesWriter) writer).setDomainBase(timeBase);   /// uis this needed ?????
-                console.log(command, Utils.commarize(parameters));
+                console.log(commandNames[cmdIdx], Utils.commarize(parameters));
                 break;
-            case TIMEZERO: 
+            case COMMAND_TIMEZERO: 
                 used = parseParameterBlock(buffer, i, parameters = new String[1]);
                 if (used == 0)
                     return 0;
                 // Set time offset from timezero command
                 timeZero = Utils.parseLong(parameters[0], 0);
-                console.log(command, Utils.commarize(parameters));
+                console.log(commandNames[cmdIdx], Utils.commarize(parameters));
                 break;
             }
             return i - n + used;

@@ -1,0 +1,36 @@
+// ============================================================================
+// Test Suite: EDA Waveform Format Readers
+// Purpose: Comprehensive test suite for waveform file format readers
+// Coverage: FST, VCD, FSDB, WLF formats
+// ============================================================================
+
+// ============================================================================
+// Section 1: FST (Fast Signal Trace) Format Tests
+// ============================================================================
+
+// FST Native Reader: Direct binary parsing implementation
+include  fst/fst-native-reader-test.jx;
+
+// FST Reader: Standard FST reading functionality
+include fst/fst-reader-test.jx;
+
+// ============================================================================
+// Section 2: VCD (Value Change Dump) Format Tests
+// ============================================================================
+
+// VCD Reader: Industry-standard ASCII waveform format
+include vcd/vcd-reader-test.jx;
+
+// ============================================================================
+// Section 3: FSDB (Fast Signal Database) Format Tests
+// ============================================================================
+
+// FSDB Reader: Synopsys/Verdi proprietary waveform format
+include fsdb/fsdb-native-reader-test.jx;
+
+// ============================================================================
+// Section 4: WLF (Waveform Log File) Format Tests
+// ============================================================================
+
+// WLF Reader: ModelSim/Questa waveform format
+//include wlf/wlf-native-reader-test.jx;

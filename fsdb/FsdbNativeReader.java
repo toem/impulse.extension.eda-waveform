@@ -19,11 +19,35 @@ import de.toem.toolkits.pattern.registry.RegistryAnnotation;
 import de.toem.toolkits.utils.natives.NativeExtensionBuilder;
 
 /**
- * FST (Fast Signal Trace) Record Reader for the impulse framework.
+ * Native FSDB (Fast Signal Database) file reader implementation for the impulse framework.
  *
- * This reader processes FST (Fast Signal Trace) files, which are commonly used in digital design and verification workflows. FST is a compact binary
- * format for storing digital signals and their values over time.
-
+ * This reader provides high-performance FSDB file processing through a native C++ implementation
+ * that leverages the Verdi FSDB API library. It offers superior parsing speed and memory efficiency
+ * for processing large simulation datasets from Synopsys VCS and other FSDB-compatible simulators,
+ * making it ideal for production verification workflows.
+ *
+ * Key features of this implementation include:
+ * - Native performance through optimized C++ code with the official FSDB library
+ * - Complete FSDB format support including compression, hierarchical structures, and variable types
+ * - Lazy loading capabilities via {@link AbstractLazyFluxReader} for efficient memory usage
+ * - Auto-build functionality that compiles native extensions from bundled source code
+ * - Cross-platform support for Windows, Linux, and macOS
+ *
+ * The reader implements a hybrid architecture combining Java configuration and control logic
+ * with native C++ processing for optimal performance. The Java layer handles configuration,
+ * property management, format detection, and framework integration, while the native layer
+ * performs actual FSDB parsing using the Verdi FSDB reader API.
+ *
+ * The native extension build process automatically extracts and compiles bundled C++ source code,
+ * FSDB library components, and flux communication layer on first use. This ensures compatibility
+ * across different platforms while maintaining the performance benefits of native execution.
+ *
+ * Configuration options support comprehensive FSDB processing scenarios including signal filtering
+ * with include/exclude patterns, time range selection for partial loading, hierarchical signal
+ * organization, and various lazy loading configurations for memory optimization.
+ *
+ * Copyright (c) 2012-2025 Thomas Haber
+ * All rights reserved.
  */
 @RegistryAnnotation(annotation = FsdbNativeReader.Annotation.class)
 public class FsdbNativeReader extends AbstractLazyFluxReader {

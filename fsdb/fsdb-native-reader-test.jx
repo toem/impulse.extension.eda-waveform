@@ -1,0 +1,178 @@
+// ============================================================================
+// Test File: fsdb-native-reader-test.jx
+// Purpose: Comprehensive testing of FSDB Native Reader functionality
+// Coverage: FSDB file format parsing, signal extraction, time range filtering,
+//           signal selection, temporal transformations, data integrity validation
+// ============================================================================
+
+// FSDB (Fast Signal Database) Format: Compressed waveform database format used in digital design
+// Test Method: Compare FSDB reader output against reference recordings (.recMl files)
+// Validation: Cell-by-cell comparison with configurable exclusion patterns
+
+// Test Parameters:
+//   - lazy: Controls lazy loading mode (false = load all data upfront)
+//   - start/end: Time range filtering (e.g., "50ms", "100ms")
+//   - include/exclude: Signal name pattern filtering
+//   - empty: Include/exclude empty signals
+//   - delay: Time offset transformation
+//   - dilate: Time scaling factor
+
+// ============================================================================
+// Section 1: Test Setup and Configuration
+// ============================================================================
+
+import java.net.URI;
+import de.toem.impulse.api.Cells;
+import de.toem.impulse.api.Serializers;
+
+// Samples directory path
+var samples = new File(new URI(uri)).getParent().toString()+"/samples/";
+
+// FST Native Reader configuration
+var id = "de.toem.impulse.reader.fsdbn";
+var descriptor = Elements.serializers.get(id);
+var properties = descriptor.getPropertyModel(null,null);
+properties.setVal("lazy","false");
+
+// Known Limitations (signals to exclude from strict comparison):
+var doubleValueDueToConverion = ".*::samples";       // Double precision conversion differences
+var noZXIn1bitSignals = ".*::samples,.*::count";     // Missing X/Z states in 1-bit signals
+var endNotAlligned = ".*::end";                       // End time alignment issues
+var comments = ".*::description";                       // End time alignment issues
+
+// ============================================================================
+// Section 2: Standard Test Cases - Basic FST File Parsing
+// ============================================================================
+
+// Test files t0001-t0030: Validate correct parsing of various FST formats
+// Each test compares reader output against pre-recorded reference files
+// Some tests require exclusion patterns due to known format limitations
+
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0001.fsdb",properties.total(),null, samples+"/t0001.recMl", null,null,comments,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0002.fsdb",properties.total(),null, samples+"/t0002.recMl", null,null,null,console ));
+//Assert.isTrue(Cells.compare(progress, id, samples+"/t0003.fsdb",properties.total(),null, samples+"/t0003.recMl", null,null,doubleValueDueToConverion,console ));  // due to double conversion differences
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0004.fsdb",properties.total(),null, samples+"/t0004.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0005.fsdb",properties.total(),null, samples+"/t0005.recMl", null,null,null,console ));
+//Assert.isTrue(Cells.compare(progress, id, samples+"/t0006.fsdb",properties.total(),null, samples+"/t0006.recMl", null,null,doubleValueDueToConverion,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0007.fsdb",properties.total(),null, samples+"/t0007.recMl", null,null,noZXIn1bitSignals,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0008.fsdb",properties.total(),null, samples+"/t0008.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0009.fsdb",properties.total(),null, samples+"/t0009.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0010.fsdb",properties.total(),null, samples+"/t0010.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0011.fsdb",properties.total(),null, samples+"/t0011.recMl", null,null,noZXIn1bitSignals,console ));
+//Assert.isTrue(Cells.compare(progress, id, samples+"/t0012.fsdb",properties.total(),null, samples+"/t0012.recMl", null,null,doubleValueDueToConverion,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0013.fsdb",properties.total(),null, samples+"/t0013.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0014.fsdb",properties.total(),null, samples+"/t0014.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0015.fsdb",properties.total(),null, samples+"/t0015.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0016.fsdb",properties.total(),null, samples+"/t0016.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0017.fsdb",properties.total(),null, samples+"/t0017.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0018.fsdb",properties.total(),null, samples+"/t0018.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0019.fsdb",properties.total(),null, samples+"/t0019.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0020.fsdb",properties.total(),null, samples+"/t0020.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0021.fsdb",properties.total(),null, samples+"/t0021.recMl", null,null,null,console));  
+//Assert.isTrue(Cells.compare(progress, id, samples+"/t0022.fsdb",properties.total(),null, samples+"/t0022.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0023.fsdb",properties.total(),null, samples+"/t0023.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0024.fsdb",properties.total(),null, samples+"/t0024.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0025.fsdb",properties.total(),null, samples+"/t0025.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0026.fsdb",properties.total(),null, samples+"/t0026.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0027.fsdb",properties.total(),null, samples+"/t0027.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0028.fsdb",properties.total(),null, samples+"/t0028.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0029.fsdb",properties.total(),null, samples+"/t0029.recMl", null,null,null,console ));
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0030.fsdb",properties.total(),null, samples+"/t0030.recMl", null,null,null,console ));
+
+
+// ============================================================================
+// Section 3: Vector Mode Testing (Currently Disabled)
+// ============================================================================
+
+// Vector mode: Controls whether multi-bit signals are treated as vectors or individual bits
+// Test: t0002_novector.recMl validates non-vector mode output
+
+// vector
+properties.setVal("vector","false");
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0002.fsdb", properties.total(), null, samples+"/t0002_novector.recMl", null, null,null,console ));
+properties.reset("vector");
+
+// ============================================================================
+// Section 4: Time Range Filtering
+// ============================================================================
+
+// Time range filtering: Extract only signals within specified time window
+// Test: Validate correct filtering from 50ms to 100ms
+// Note: May have double value conversion differences in sampled data
+
+// range
+properties.setVal("start","50ms");
+properties.setVal("end","100ms");
+//Assert.isTrue(Cells.compare(progress, id, samples+"/t0003.fsdb", properties.total(),null, samples+"/t0003_range.recMl", null,null,doubleValueDueToConverion,console));
+properties.reset("start");
+properties.reset("end");
+
+// ============================================================================
+// Section 5: Signal Selection Filtering
+// ============================================================================
+
+// Signal selection: Include/exclude signals based on name patterns
+// Test configuration:
+//   - include: "scp0001" - only signals matching this pattern
+//   - exclude: "scp0003" - exclude signals matching this pattern
+//   - empty: false - exclude signals with no data
+
+// select
+properties.setVal("include","scp0001");
+properties.setVal("exclude","scp0003");
+properties.setVal("empty","false");
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0004.fsdb", properties.total(),null, samples+"/t0004_select.recMl", null,null,null,console));
+properties.reset("include");
+properties.reset("exclude");
+properties.reset("empty");
+
+// ============================================================================
+// Section 6: Temporal Transformations
+// ============================================================================
+
+// Temporal transformations: Modify time axis of signals
+// Test configuration:
+//   - delay: "10ms" - shift all signals forward in time by 10ms
+//   - dilate: "2" - stretch time axis by factor of 2 (signals appear slower)
+// Note: End time alignment may differ due to transformation
+
+// transform
+properties.setVal("delay","10ms");
+properties.setVal("dilate","2");
+Assert.isTrue(Cells.compare(progress, id, samples+"/t0005.fsdb", properties.total(),null, samples+"/t0005_transform.recMl", null,null,endNotAlligned,console));
+properties.reset("delay");
+properties.reset("dilate");
+
+// ============================================================================
+// Section 7: Real-World FST File Validation
+// ============================================================================
+
+// Real-world test files: Verify that actual FST files from real designs can be read
+// without errors and that the correct number of cells (scopes + signals) are extracted
+// Cell count validation ensures complete structure parsing of complex hierarchies
+
+/*
+var properties = descriptor.getPropertyModel(null,null);
+properties.setVal("lazy","false");
+
+// t1001: Expected 872 cells (scopes and signals)
+var cover = Serializers.read(progress, id, samples+"/t1001.fsdb",properties.total(), console);
+var noOfCells = cover != null && cover.getCell() != null ? cover.getCell().getTribe(true).size():-1;
+Assert.isTrue(noOfCells == 872,"t1001: noOfCells is " + noOfCells);
+
+// t1002: Expected 1759 cells (scopes and signals)
+cover = Serializers.read(progress, id, samples+"/t1002.fsdb",properties.total(), console);
+noOfCells = cover != null && cover.getCell() != null ? cover.getCell().getTribe(true).size():-1;
+Assert.isTrue(noOfCells == 1759,"t1002: noOfCells is " + noOfCells);
+
+// t1003: Expected 1759 cells (scopes and signals)
+cover = Serializers.read(progress, id, samples+"/t1003.fsdb",properties.total(), console);
+noOfCells = cover != null && cover.getCell() != null ? cover.getCell().getTribe(true).size():-1;
+Assert.isTrue(noOfCells == 1759,"t1003: noOfCells is " + noOfCells);
+
+// t1004: Expected 5559 cells (scopes and signals)
+cover = Serializers.read(progress, id, samples+"/t1004.fsdb",properties.total(), console);
+noOfCells = cover != null && cover.getCell() != null ? cover.getCell().getTribe(true).size():-1;
+Assert.isTrue(noOfCells == 5559,"t1004: noOfCells is " + noOfCells);
+*/
+
